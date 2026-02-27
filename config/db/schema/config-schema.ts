@@ -1,54 +1,65 @@
-// export settings table 
-/*
-id (serial)
-site_name: text
-description: text
-logo: text
-dark_logo?: text
-favicon: text
-google_analytics_id?: text
-google_tag_manager_id?: text
-google_search_console_id?: text
-yandex_analytics_id?: text
-bing_analytics_id?: text
-posthog_api_key?: text
-posthog_base_url?: text
-socials: jsonb {url, icon (svg), name}
-copyright_text: text
-openrouter_api_key: text
-openrouter_base_url: text
-openrouter_model: text
-*/
+import { pgTable, serial, text, jsonb, timestamp } from 'drizzle-orm/pg-core';
 
-// navbar
-/*
-id (serial)
-label: text
-path: text (/xyz)
-order: number
-*/
+type SocialLink = {
+  url: string;
+  icon: string;
+  name: string;
+};
 
-// sidebar
-/*
-id (serial)
-label: text
-path: text (/xyz)
-order: number
-*/
+type FooterListItem = {
+  label: string;
+  path: string;
+  order: number;
+};
 
-// footer
-/*
-id (serial)
-list_label: string
-list_items: jsonb {label, path, order}
-*/
+export const siteSettings = pgTable('site_settings', {
+  id: serial('id').primaryKey(),
+  siteName: text('site_name').notNull(),
+  description: text('description'),
+  logo: text('logo'),
+  darkLogo: text('dark_logo'),
+  favicon: text('favicon'),
+  googleAnalyticsId: text('google_analytics_id'),
+  googleTagManagerId: text('google_tag_manager_id'),
+  googleSearchConsoleId: text('google_search_console_id'),
+  yandexAnalyticsId: text('yandex_analytics_id'),
+  bingAnalyticsId: text('bing_analytics_id'),
+  posthogApiKey: text('posthog_api_key'),
+  posthogBaseUrl: text('posthog_base_url'),
+  socials: jsonb('socials').$type<SocialLink[]>(),
+  copyrightText: text('copyright_text'),
+  openrouterApiKey: text('openrouter_api_key'),
+  openrouterBaseUrl: text('openrouter_base_url'),
+  openrouterModel: text('openrouter_model'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
 
-// page
-/*
-id (serial)
-slug: text
-title: text
-content: text
-tags: text[]
-*/
+export const navbarItem = pgTable('navbar_item', {
+  id: serial('id').primaryKey(),
+  label: text('label').notNull(),
+  path: text('path').notNull(),
+  order: text('order').notNull(),
+});
 
+export const sidebarItem = pgTable('sidebar_item', {
+  id: serial('id').primaryKey(),
+  label: text('label').notNull(),
+  path: text('path').notNull(),
+  order: text('order').notNull(),
+});
+
+export const footerList = pgTable('footer_list', {
+  id: serial('id').primaryKey(),
+  listLabel: text('list_label').notNull(),
+  listItems: jsonb('list_items').$type<FooterListItem[]>().notNull(),
+});
+
+export const page = pgTable('page', {
+  id: serial('id').primaryKey(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  content: text('content'),
+  tags: jsonb('tags').$type<string[]>().default([]),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
