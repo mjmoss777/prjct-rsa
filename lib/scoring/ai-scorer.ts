@@ -31,6 +31,7 @@ export async function scoreWithAi(
 ): Promise<AiScoringResult> {
   const { object } = await generateObject({
     model: getModel(),
+    mode: 'tool',
     schema: fullAnalysisSchema,
     system: SCORING_SYSTEM_PROMPT,
     prompt: buildAnalysisPrompt(resumeText, jobDescription),
