@@ -1,9 +1,10 @@
 'use server';
 
-import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 import { db } from '@/config/db';
 import { savedResume, type ResumeData, type TemplateType } from '@/config/db/schema/ats-schema';
+import { auth } from '@/config/auth';
 import { generateObject } from 'ai';
 import { getModel } from '@/config/ai';
 import { z } from 'zod';
@@ -14,8 +15,8 @@ export async function saveResume(data: {
   templateType: TemplateType;
   resumeData: ResumeData;
 }) {
-  // const session = await auth.api.getSession({ headers: await headers() });
-  // if (!session?.user) throw new Error('Unauthorized');
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error('Unauthorized');
 
   if (data.id) {
     await db
@@ -34,7 +35,7 @@ export async function saveResume(data: {
   const [result] = await db
     .insert(savedResume)
     .values({
-      userId: '1',
+      userId: session.user.id,
       name: data.name,
       templateType: data.templateType,
       resumeData: data.resumeData,
