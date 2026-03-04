@@ -42,3 +42,127 @@ body {
   color: var(--color-fg);
   font-family: var(--font-body);
 }
+
+/* Meld prose — markdown content styling */
+.prose-meld {
+  font-family: var(--font-body);
+  color: var(--color-fg);
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.prose-meld h1,
+.prose-meld h2,
+.prose-meld h3,
+.prose-meld h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-fg);
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+}
+
+.prose-meld h1 { font-size: 28px; line-height: 34px; }
+.prose-meld h2 { font-size: 22px; line-height: 28px; }
+.prose-meld h3 { font-size: 18px; line-height: 24px; }
+.prose-meld h4 { font-size: 16px; line-height: 22px; }
+
+.prose-meld h1:first-child,
+.prose-meld h2:first-child,
+.prose-meld h3:first-child {
+  margin-top: 0;
+}
+
+.prose-meld p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.prose-meld a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-meld a:hover {
+  color: var(--color-fg);
+}
+
+.prose-meld strong {
+  font-weight: 500;
+}
+
+.prose-meld em {
+  color: var(--color-muted);
+}
+
+.prose-meld ul,
+.prose-meld ol {
+  padding-left: 1.5em;
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.prose-meld li {
+  margin-bottom: 0.35em;
+}
+
+.prose-meld hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 2em 0;
+}
+
+.prose-meld blockquote {
+  border-left: 2px solid var(--color-border);
+  padding-left: 1em;
+  margin-left: 0;
+  color: var(--color-muted);
+}
+
+.prose-meld code {
+  background: var(--color-hover-tint);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.prose-meld pre {
+  background: var(--color-hover-tint);
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+
+.prose-meld pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.prose-meld table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+.prose-meld th,
+.prose-meld td {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.prose-meld th {
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-subtle);
+}
+
+.prose-meld img {
+  max-width: 100%;
+  border-radius: 8px;
+}

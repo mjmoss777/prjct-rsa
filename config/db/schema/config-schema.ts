@@ -81,6 +81,8 @@ export const page = pgTable('page', {
   title: text('title').notNull(),
   content: text('content'),
   tags: jsonb('tags').$type<string[]>().default([]),
+  isPublished: boolean('is_published').notNull().default(true),
+  metaDescription: text('meta_description'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

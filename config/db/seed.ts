@@ -128,21 +128,129 @@ async function seed() {
   await db.insert(page).values([
     {
       slug: "about",
-      title: "About",
-      content: "ResumeATS helps job seekers optimize their resumes for Applicant Tracking Systems.",
+      title: "About ResumeATS",
+      content: `## Our Mission
+
+ResumeATS helps job seekers optimize their resumes for Applicant Tracking Systems. We believe everyone deserves a fair shot at landing an interview — and that starts with a resume that gets read.
+
+## How It Works
+
+Upload your resume and a job description. Our ATS checker analyzes your resume against the same criteria used by leading applicant tracking systems, then gives you actionable recommendations to improve your match rate.
+
+## The Team
+
+ResumeATS is built by a small team of engineers and hiring professionals who have seen firsthand how qualified candidates get filtered out by automated systems. We built the tool we wished existed.
+
+## Contact
+
+Have questions or feedback? Reach out at [hello@resume-ats.com](mailto:hello@resume-ats.com).`,
       tags: ["company", "about"],
+      isPublished: true,
+      metaDescription: "Learn about ResumeATS — the ATS resume checker that helps job seekers optimize their resumes and land more interviews.",
     },
     {
       slug: "privacy",
       title: "Privacy Policy",
-      content: "Your data stays yours. We do not sell or share your personal information.",
+      content: `*Last updated: March 2026*
+
+## Overview
+
+Your privacy matters. This policy explains what data we collect, how we use it, and your rights.
+
+## Data We Collect
+
+- **Account information** — name, email address, and password (hashed)
+- **Resumes and job descriptions** — uploaded for analysis, stored securely
+- **Usage data** — pages visited, features used, scan history
+
+## How We Use Your Data
+
+- To provide and improve our ATS checking and resume building services
+- To send you scan results and account notifications
+- To understand how our product is used so we can make it better
+
+## Data Retention
+
+- Resumes and scan results are retained while your account is active
+- You can delete your data at any time from your account settings
+- When you delete your account, all associated data is permanently removed within 30 days
+
+## Third Parties
+
+We do not sell or share your personal information with third parties for marketing purposes. We use:
+
+- **Hosting** — Vercel (application), AWS (file storage)
+- **AI analysis** — Your resume text is sent to our AI provider for analysis, but is not stored by them
+
+## Your Rights
+
+You have the right to access, correct, or delete your personal data at any time. Contact us at [privacy@resume-ats.com](mailto:privacy@resume-ats.com).
+
+## Cookies
+
+We use essential cookies for authentication and session management. No third-party tracking cookies are used unless you have opted in to analytics.
+
+## Changes
+
+We may update this policy from time to time. Changes will be posted on this page with an updated date.`,
       tags: ["legal"],
+      isPublished: true,
+      metaDescription: "ResumeATS Privacy Policy — how we collect, use, and protect your personal data and uploaded resumes.",
     },
     {
       slug: "terms",
       title: "Terms of Service",
-      content: "By using ResumeATS you agree to these terms of service.",
+      content: `*Last updated: March 2026*
+
+## Acceptance
+
+By creating an account or using ResumeATS, you agree to these terms. If you do not agree, please do not use the service.
+
+## The Service
+
+ResumeATS provides automated resume analysis and resume building tools. Our ATS checker evaluates resumes against common applicant tracking system criteria and provides suggestions for improvement.
+
+## Your Account
+
+- You must provide accurate information when creating an account
+- You are responsible for maintaining the security of your account
+- One person per account — do not share credentials
+
+## Acceptable Use
+
+You agree not to:
+
+- Upload content that is illegal, harmful, or infringes on others' rights
+- Attempt to access other users' data or accounts
+- Use the service to generate misleading or fraudulent resumes
+- Reverse-engineer or scrape the service
+
+## Intellectual Property
+
+- Your resumes and content remain yours
+- The ResumeATS name, logo, and service design are our intellectual property
+- AI-generated suggestions and analysis are provided as guidance, not guaranteed outcomes
+
+## Disclaimers
+
+- ResumeATS does not guarantee job interviews or employment outcomes
+- ATS scores are estimates based on common patterns and may differ from actual ATS results
+- The service is provided "as is" without warranties of any kind
+
+## Limitation of Liability
+
+To the fullest extent permitted by law, ResumeATS shall not be liable for indirect, incidental, or consequential damages arising from your use of the service.
+
+## Termination
+
+We may suspend or terminate accounts that violate these terms. You may delete your account at any time.
+
+## Contact
+
+Questions about these terms? Email [legal@resume-ats.com](mailto:legal@resume-ats.com).`,
       tags: ["legal"],
+      isPublished: true,
+      metaDescription: "ResumeATS Terms of Service — the rules and guidelines for using our ATS resume checker and resume builder.",
     },
   ]);
   console.log("  Created pages");
