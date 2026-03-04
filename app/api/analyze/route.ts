@@ -1,13 +1,42 @@
 import { streamObject } from 'ai';
+import { headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
+import { auth } from '@/config/auth';
 import { getModel } from '@/config/ai';
 import { db } from '@/config/db';
+import { user } from '@/config/db/schema/auth-schema';
 import { resumeScan } from '@/config/db/schema/ats-schema';
 import { fullAnalysisSchema } from '@/lib/scoring/schemas';
 import { SCORING_SYSTEM_PROMPT, buildAnalysisPrompt } from '@/lib/scoring/prompts';
 import { CATEGORY_WEIGHTS } from '@/lib/scoring/constants';
+import { checkUsageLimit, trackUsage } from '@/lib/usage';
+import type { PlanType } from '@/lib/plans';
 
 export async function POST(req: Request) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+
+  // Get user plan
+  const [dbUser] = await db
+    .select({ plan: user.plan })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+  const userPlan = (dbUser?.plan as PlanType) || 'free';
+
+  // Check usage limit
+  const usage = await checkUsageLimit(userId, userPlan);
+  if (!usage.allowed) {
+    return Response.json(
+      { error: 'Monthly token limit exceeded', used: usage.used, limit: usage.limit },
+      { status: 429 },
+    );
+  }
+
   const { scanId } = (await req.json()) as { scanId: number };
 
   const scan = await db.query.resumeScan.findFirst({
@@ -27,12 +56,25 @@ export async function POST(req: Request) {
     .set({ status: 'analyzing' })
     .where(eq(resumeScan.id, scanId));
 
+  const modelId = process.env.AI_MODEL || process.env.OPENROUTER_MODEL || 'openai/gpt-4o';
+
   const result = streamObject({
     model: getModel(),
     schema: fullAnalysisSchema,
     system: SCORING_SYSTEM_PROMPT,
     prompt: buildAnalysisPrompt(scan.extractedText, scan.jobDescription ?? ''),
-    onFinish: async ({ object }) => {
+    onFinish: async ({ object, usage: aiUsage }) => {
+      // Track token usage
+      if (aiUsage) {
+        trackUsage({
+          userId,
+          requestType: 'analyze',
+          inputTokens: aiUsage.inputTokens ?? 0,
+          outputTokens: aiUsage.outputTokens ?? 0,
+          model: modelId,
+        }).catch(() => {});
+      }
+
       if (!object) {
         await db
           .update(resumeScan)

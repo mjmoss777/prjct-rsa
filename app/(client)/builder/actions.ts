@@ -4,10 +4,13 @@ import { headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 import { db } from '@/config/db';
 import { savedResume, type ResumeData, type TemplateType } from '@/config/db/schema/ats-schema';
+import { user } from '@/config/db/schema/auth-schema';
 import { auth } from '@/config/auth';
 import { generateObject } from 'ai';
 import { getModel } from '@/config/ai';
 import { z } from 'zod';
+import { checkUsageLimit, trackUsage } from '@/lib/usage';
+import type { PlanType } from '@/lib/plans';
 
 export async function saveResume(data: {
   id?: number;
@@ -54,7 +57,28 @@ export async function improveBulletPoint(
   jobTitle: string,
   company: string,
 ): Promise<string> {
-  const { object } = await generateObject({
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const userId = session.user.id;
+
+  // Get user plan
+  const [dbUser] = await db
+    .select({ plan: user.plan })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+  const userPlan = (dbUser?.plan as PlanType) || 'free';
+
+  // Check usage limit
+  const usage = await checkUsageLimit(userId, userPlan);
+  if (!usage.allowed) {
+    throw new Error('Monthly token limit exceeded. Upgrade your plan for more usage.');
+  }
+
+  const modelId = process.env.AI_MODEL || process.env.OPENROUTER_MODEL || 'openai/gpt-4o';
+
+  const { object, usage: aiUsage } = await generateObject({
     model: getModel(),
     schema: z.object({
       improved: z.string().describe('The improved bullet point'),
@@ -62,6 +86,17 @@ export async function improveBulletPoint(
     system: `You are a resume writing expert. Improve the given bullet point to be more impactful for ATS systems and hiring managers. Use strong action verbs, quantify results where possible, and be concise. Keep it to one sentence. Do not add information that wasn't implied in the original.`,
     prompt: `Job title: ${jobTitle}\nCompany: ${company}\n\nOriginal bullet point: ${bullet}`,
   });
+
+  // Track token usage
+  if (aiUsage) {
+    trackUsage({
+      userId,
+      requestType: 'improve_bullet',
+      inputTokens: aiUsage.inputTokens ?? 0,
+      outputTokens: aiUsage.outputTokens ?? 0,
+      model: modelId,
+    }).catch(() => {});
+  }
 
   return object.improved;
 }

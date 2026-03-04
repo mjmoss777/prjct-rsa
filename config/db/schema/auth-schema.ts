@@ -7,6 +7,7 @@ export const user = pgTable('user', {
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
   role: text('role').notNull().default('user'), // 'admin' | 'user'
+  plan: text('plan').notNull().default('free'), // 'free' | 'pro'
   accountStatus: text('account_status').notNull().default('active'), // 'active' | 'suspended' | 'deactivated'
   isBanned: boolean('is_banned').notNull().default(false),
   banReason: text('ban_reason'),

@@ -4,16 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from '@/config/auth/client';
 import { cn } from '@/lib/utils';
+import { UsageWidget } from './UsageWidget';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'ATS Checker', href: '/checker' },
   { label: 'Resume Builder', href: '/builder' },
+  { label: 'Billing', href: '/billing' },
 ];
 
 const adminItems = [
   { label: 'Pages', href: '/admin/pages' },
   { label: 'Settings', href: '/admin/settings' },
+  { label: 'Usage', href: '/admin/usage' },
+  { label: 'Subscribers', href: '/admin/subscribers' },
 ];
 
 export function ClientNav() {
@@ -78,6 +82,9 @@ export function ClientNav() {
           </>
         )}
       </nav>
+
+      {/* Usage widget */}
+      <UsageWidget />
 
       {/* Sign out */}
       <div className="border-t border-border px-3 py-4">

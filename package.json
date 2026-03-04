@@ -15,6 +15,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1001.0",
     "@heroui/react": "^3.0.0-beta.7",
     "@heroui/styles": "^3.0.0-beta.7",
+    "@polar-sh/sdk": "^0.46.1",
     "@react-pdf/renderer": "^4.3.2",
     "@uiw/react-md-editor": "^4.0.11",
     "@upstash/redis": "^1.36.3",
