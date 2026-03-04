@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { emailOtp } from '@/config/auth/client';
 import { OTPInput } from '@/components/ui/OTPInput';
@@ -10,6 +10,10 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') ?? '';
+
+  useEffect(() => {
+    if (!email) router.replace('/sign-up');
+  }, [email, router]);
 
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);

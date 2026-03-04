@@ -4,6 +4,14 @@ import { siteSettings } from '@/config/db/schema/config-schema';
 
 type OTPType = 'sign-in' | 'email-verification' | 'forget-password';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 async function getEmailConfig() {
   const [settings] = await db
     .select({
@@ -52,6 +60,8 @@ function headingForType(type: OTPType): string {
 
 function buildOTPEmailHTML(otp: string, type: OTPType, siteName: string): string {
   const heading = headingForType(type);
+  const safeName = escapeHtml(siteName);
+  const safeOtp = escapeHtml(otp);
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"/></head>
@@ -65,14 +75,14 @@ function buildOTPEmailHTML(otp: string, type: OTPType, siteName: string): string
             Enter this code to continue. It expires in 5 minutes.
           </p>
           <div style="background:#f4f4f5;border-radius:8px;padding:16px;text-align:center;margin-bottom:24px">
-            <span style="font-size:32px;font-weight:700;letter-spacing:0.3em;color:#18181b">${otp}</span>
+            <span style="font-size:32px;font-weight:700;letter-spacing:0.3em;color:#18181b">${safeOtp}</span>
           </div>
           <p style="margin:0;font-size:13px;color:#a1a1aa;line-height:1.5">
             If you didn't request this code, you can safely ignore this email.
           </p>
         </td></tr>
         <tr><td style="padding-top:24px;border-top:1px solid #e4e4e7;margin-top:24px">
-          <p style="margin:0;font-size:13px;color:#a1a1aa">${siteName}</p>
+          <p style="margin:0;font-size:13px;color:#a1a1aa">${safeName}</p>
         </td></tr>
       </table>
     </td></tr>

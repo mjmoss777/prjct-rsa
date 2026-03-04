@@ -11,6 +11,10 @@ export default async function ClientLayout({
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect('/sign-in');
 
+  if (!session.user.emailVerified) {
+    redirect(`/verify-email?email=${encodeURIComponent(session.user.email)}`);
+  }
+
   return (
     <div className="flex min-h-screen">
       <ClientNav />

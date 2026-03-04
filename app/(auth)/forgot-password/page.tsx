@@ -7,7 +7,7 @@ import { emailOtp } from '@/config/auth/client';
 import { OTPInput } from '@/components/ui/OTPInput';
 import { cn } from '@/lib/utils';
 
-type Step = 'email' | 'reset';
+type Step = 'email' | 'reset' | 'success';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -60,11 +60,35 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    router.push('/sign-in');
+    setPending(false);
+    setStep('success');
   }
 
   const inputClass =
     'w-full rounded-[var(--radius-card)] border border-border bg-transparent px-4 py-3 font-body text-[15px] leading-[24px] text-fg outline-none transition-colors placeholder:text-subtle focus:border-accent';
+
+  if (step === 'success') {
+    return (
+      <>
+        <div className="mb-8 text-center">
+          <h1 className="m-0 font-display text-[28px] leading-[34px] tracking-[-0.02em] text-fg">
+            Password reset
+          </h1>
+          <p className="mt-2 font-body text-[15px] leading-[24px] text-muted">
+            Your password has been updated. You can now sign in with your new password.
+          </p>
+        </div>
+        <Link
+          href="/sign-in"
+          className={cn(
+            'block w-full rounded-pill bg-accent px-8 py-3.5 text-center font-body text-[16px] font-medium leading-[20px] text-on-accent no-underline transition-opacity duration-200 hover:opacity-90',
+          )}
+        >
+          Sign in
+        </Link>
+      </>
+    );
+  }
 
   return (
     <>
