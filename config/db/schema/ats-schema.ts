@@ -93,6 +93,8 @@ type EducationMatchScoreData = BaseScore & {
   isMatch: boolean;
 };
 
+export type ScanStatus = 'pending' | 'analyzing' | 'complete' | 'failed';
+
 export const resumeScan = pgTable('resume_scan', {
   id: serial('id').primaryKey(),
   userId: text('user_id')
@@ -102,19 +104,21 @@ export const resumeScan = pgTable('resume_scan', {
   fileType: text('file_type').notNull(),
   fileSize: integer('file_size').notNull(),
   extractedText: text('extracted_text').notNull(),
+  fileUrl: text('file_url'),
   jobDescription: text('job_description'),
   jobTitle: text('job_title'),
-  overallScore: real('overall_score').notNull(),
+  status: text('status').$type<ScanStatus>().notNull().default('pending'),
+  overallScore: real('overall_score'),
   parseabilityScore: jsonb('parseability_score').$type<ParseabilityScoreData>().notNull(),
-  sectionCompletenessScore: jsonb('section_completeness_score').$type<SectionCompletenessScoreData>().notNull(),
-  hardSkillsScore: jsonb('hard_skills_score').$type<HardSkillsScoreData>().notNull(),
-  contentQualityScore: jsonb('content_quality_score').$type<ContentQualityScoreData>().notNull(),
-  jobTitleAlignmentScore: jsonb('job_title_alignment_score').$type<JobTitleAlignmentScoreData>().notNull(),
-  experienceDepthScore: jsonb('experience_depth_score').$type<ExperienceDepthScoreData>().notNull(),
-  softSkillsScore: jsonb('soft_skills_score').$type<SoftSkillsScoreData>().notNull(),
-  educationMatchScore: jsonb('education_match_score').$type<EducationMatchScoreData>().notNull(),
-  summary: text('summary').notNull(),
-  topRecommendations: jsonb('top_recommendations').$type<string[]>().notNull(),
+  sectionCompletenessScore: jsonb('section_completeness_score').$type<SectionCompletenessScoreData>(),
+  hardSkillsScore: jsonb('hard_skills_score').$type<HardSkillsScoreData>(),
+  contentQualityScore: jsonb('content_quality_score').$type<ContentQualityScoreData>(),
+  jobTitleAlignmentScore: jsonb('job_title_alignment_score').$type<JobTitleAlignmentScoreData>(),
+  experienceDepthScore: jsonb('experience_depth_score').$type<ExperienceDepthScoreData>(),
+  softSkillsScore: jsonb('soft_skills_score').$type<SoftSkillsScoreData>(),
+  educationMatchScore: jsonb('education_match_score').$type<EducationMatchScoreData>(),
+  summary: text('summary'),
+  topRecommendations: jsonb('top_recommendations').$type<string[]>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

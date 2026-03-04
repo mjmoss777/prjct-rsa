@@ -1,6 +1,7 @@
 import type { ParsedResume } from '@/lib/parsers';
 import { scoreParseability, type ParseabilityScore } from './parseability-scorer';
-import { scoreWithAi, CATEGORY_WEIGHTS, type AiScoringResult } from './ai-scorer';
+import { scoreWithAi, type AiScoringResult } from './ai-scorer';
+import { CATEGORY_WEIGHTS } from './constants';
 
 export type CompositeScore = {
   overallScore: number;
@@ -20,15 +21,13 @@ export async function scoreResume(
   parsed: ParsedResume,
   jobDescription: string,
 ): Promise<CompositeScore> {
-  // Run deterministic and AI scoring in parallel
   const [parseability, aiResult] = await Promise.all([
     scoreParseability(parsed),
     scoreWithAi(parsed.text, jobDescription),
   ]);
 
-  // Weighted average across all 8 categories
   const weightedSum =
-    parseability.score * parseability.weight +
+    parseability.score * CATEGORY_WEIGHTS.parseability +
     aiResult.sectionCompleteness.score * CATEGORY_WEIGHTS.sectionCompleteness +
     aiResult.hardSkillsMatch.score * CATEGORY_WEIGHTS.hardSkillsMatch +
     aiResult.contentQuality.score * CATEGORY_WEIGHTS.contentQuality +

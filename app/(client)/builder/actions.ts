@@ -55,7 +55,6 @@ export async function improveBulletPoint(
 ): Promise<string> {
   const { object } = await generateObject({
     model: getModel(),
-    mode: 'tool',
     schema: z.object({
       improved: z.string().describe('The improved bullet point'),
     }),

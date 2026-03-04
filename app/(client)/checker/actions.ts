@@ -6,14 +6,15 @@ import { auth } from '@/config/auth';
 import { db } from '@/config/db';
 import { resumeScan } from '@/config/db/schema/ats-schema';
 import { parseResume } from '@/lib/parsers';
-import { scoreResume } from '@/lib/scoring/composite-scorer';
+import { scoreParseability } from '@/lib/scoring/parseability-scorer';
+import { getStorage } from '@/lib/storage';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
 export async function analyzeResume(formData: FormData) {
-  // const session = await auth.api.getSession({ headers: await headers() });
-  // if (!session?.user) throw new Error('Unauthorized');
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error('Unauthorized');
 
   const file = formData.get('resume') as File | null;
   const jobDescription = formData.get('jobDescription') as string | null;
@@ -25,29 +26,26 @@ export async function analyzeResume(formData: FormData) {
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const parsed = await parseResume(buffer, file.name);
-  const result = await scoreResume(parsed, jobDescription);
+  const parseability = scoreParseability(parsed);
+
+  // Upload original file to storage
+  const storage = getStorage();
+  const ext = file.name.split('.').pop() ?? 'pdf';
+  const storageKey = `resumes/${session.user.id}/${Date.now()}.${ext}`;
+  await storage.upload(storageKey, buffer, file.type);
 
   const [scan] = await db
     .insert(resumeScan)
     .values({
-      // userId: session.user.id,
-      userId: 'test-user-1', // TODO: replace with session.user.id
+      userId: session.user.id,
       fileName: file.name,
       fileType: parsed.fileType,
       fileSize: file.size,
       extractedText: parsed.text,
+      fileUrl: storageKey,
       jobDescription,
-      overallScore: result.overallScore,
-      parseabilityScore: result.parseability,
-      sectionCompletenessScore: result.sectionCompleteness,
-      hardSkillsScore: result.hardSkillsMatch,
-      contentQualityScore: result.contentQuality,
-      jobTitleAlignmentScore: result.jobTitleAlignment,
-      experienceDepthScore: result.experienceDepth,
-      softSkillsScore: result.softSkills,
-      educationMatchScore: result.educationMatch,
-      summary: result.summary,
-      topRecommendations: result.topRecommendations,
+      status: 'pending',
+      parseabilityScore: parseability,
     })
     .returning({ id: resumeScan.id });
 

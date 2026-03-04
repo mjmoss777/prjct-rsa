@@ -4,7 +4,8 @@ import { eq, and } from 'drizzle-orm';
 import { auth } from '@/config/auth';
 import { db } from '@/config/db';
 import { resumeScan } from '@/config/db/schema/ats-schema';
-import { ScoreReport } from '@/components/pages/checker/ScoreReport';
+import { getStorage } from '@/lib/storage';
+import { ScanResultsView } from '@/components/pages/checker/ScanResultsView';
 
 export const metadata = {
   title: 'Scan Results',
@@ -28,9 +29,16 @@ export default async function ScanResultPage({
 
   if (!scan) notFound();
 
+  // Resolve file URL
+  let fileUrl: string | null = null;
+  if (scan.fileUrl) {
+    const storage = getStorage();
+    fileUrl = await storage.getUrl(scan.fileUrl);
+  }
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
-      <ScoreReport scan={scan} />
+    <div className="mx-auto max-w-6xl px-4 py-12">
+      <ScanResultsView scan={scan} fileUrl={fileUrl} />
     </div>
   );
 }

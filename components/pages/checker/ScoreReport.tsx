@@ -7,24 +7,6 @@ import type { resumeScan } from '@/config/db/schema/ats-schema';
 
 type Scan = typeof resumeScan.$inferSelect;
 
-function alignmentColor(level: string): string {
-  switch (level) {
-    case 'exact': return 'text-accent';
-    case 'strong': return 'text-accent-soft';
-    case 'moderate': return 'text-muted';
-    default: return 'text-error';
-  }
-}
-
-function alignmentDot(level: string): string {
-  switch (level) {
-    case 'exact': return 'bg-accent';
-    case 'strong': return 'bg-accent-soft';
-    case 'moderate': return 'bg-muted';
-    default: return 'bg-error';
-  }
-}
-
 function Tag({ children, variant }: { children: React.ReactNode; variant: 'accent' | 'accent-soft' | 'muted' | 'error' }) {
   const colorMap = {
     accent: { text: 'text-accent', dot: 'bg-accent' },
@@ -86,7 +68,7 @@ export function ScoreReport({ scan }: { scan: Scan }) {
     <div className="flex flex-col gap-20">
       {/* Header */}
       <div className="flex flex-col items-center gap-8">
-        <ScoreGauge score={overallScore} />
+        <ScoreGauge score={overallScore ?? 0} />
         <div className="max-w-[600px] text-center">
           <h1 className="m-0 font-display text-[24px] leading-[30px] tracking-[-0.02em] text-fg [text-wrap:balance]">
             Scan Results
@@ -94,14 +76,16 @@ export function ScoreReport({ scan }: { scan: Scan }) {
           <p className="mt-1 font-body text-[13px] leading-[16px] text-subtle">
             {scan.fileName}
           </p>
-          <p className="mt-3 font-body text-[15px] leading-[24px] text-muted">
-            {summary}
-          </p>
+          {summary && (
+            <p className="mt-3 font-body text-[15px] leading-[24px] text-muted">
+              {summary}
+            </p>
+          )}
         </div>
       </div>
 
       {/* Top Recommendations */}
-      {topRecommendations.length > 0 && (
+      {topRecommendations && topRecommendations.length > 0 && (
         <div className="rounded-[var(--radius-card)] border border-border bg-surface p-6">
           <h2 className="mb-4 font-display text-[22px] leading-[28px] tracking-[-0.01em] text-fg">
             Top Recommendations
@@ -122,104 +106,120 @@ export function ScoreReport({ scan }: { scan: Scan }) {
           Score Breakdown
         </h2>
 
-        <ScoreCard
-          label="Hard Skills Match"
-          score={hardSkillsScore.score}
-          weight={hardSkillsScore.weight}
-          feedback={hardSkillsScore.feedback}
-        >
-          {hardSkillsScore.matchedSkills.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {hardSkillsScore.matchedSkills.map((skill) => (
-                <SkillChip key={skill} variant="match">{skill}</SkillChip>
-              ))}
+        {hardSkillsScore && (
+          <ScoreCard
+            label="Hard Skills Match"
+            score={hardSkillsScore.score}
+            weight={hardSkillsScore.weight}
+            feedback={hardSkillsScore.feedback}
+          >
+            {hardSkillsScore.matchedSkills.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {hardSkillsScore.matchedSkills.map((skill) => (
+                  <SkillChip key={skill} variant="match">{skill}</SkillChip>
+                ))}
+              </div>
+            )}
+            {hardSkillsScore.missingSkills.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {hardSkillsScore.missingSkills.map((skill) => (
+                  <SkillChip key={skill} variant="missing">{skill}</SkillChip>
+                ))}
+              </div>
+            )}
+          </ScoreCard>
+        )}
+
+        {parseabilityScore && (
+          <ScoreCard
+            label="Parseability"
+            score={parseabilityScore.score}
+            weight={parseabilityScore.weight}
+            feedback={parseabilityScore.feedback}
+          />
+        )}
+
+        {sectionCompletenessScore && (
+          <ScoreCard
+            label="Section Completeness"
+            score={sectionCompletenessScore.score}
+            weight={sectionCompletenessScore.weight}
+            feedback={sectionCompletenessScore.feedback}
+          />
+        )}
+
+        {contentQualityScore && (
+          <ScoreCard
+            label="Content Quality"
+            score={contentQualityScore.score}
+            weight={contentQualityScore.weight}
+            feedback={contentQualityScore.feedback}
+          />
+        )}
+
+        {jobTitleAlignmentScore && (
+          <ScoreCard
+            label="Job Title Alignment"
+            score={jobTitleAlignmentScore.score}
+            weight={jobTitleAlignmentScore.weight}
+            feedback={jobTitleAlignmentScore.feedback}
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-body text-[13px] leading-[16px] text-subtle">
+                Target:
+              </span>
+              <span className="font-body text-[15px] font-medium leading-[24px] text-fg">
+                {jobTitleAlignmentScore.targetTitle}
+              </span>
+              <Tag variant={tagVariant(jobTitleAlignmentScore.alignmentLevel)}>
+                {jobTitleAlignmentScore.alignmentLevel}
+              </Tag>
             </div>
-          )}
-          {hardSkillsScore.missingSkills.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {hardSkillsScore.missingSkills.map((skill) => (
-                <SkillChip key={skill} variant="missing">{skill}</SkillChip>
-              ))}
+          </ScoreCard>
+        )}
+
+        {experienceDepthScore && (
+          <ScoreCard
+            label="Experience Depth"
+            score={experienceDepthScore.score}
+            weight={experienceDepthScore.weight}
+            feedback={experienceDepthScore.feedback}
+          >
+            <p className="m-0 font-body text-[13px] leading-[16px] text-subtle">
+              {experienceDepthScore.totalYears} years total, {experienceDepthScore.relevantYears} relevant
+            </p>
+          </ScoreCard>
+        )}
+
+        {softSkillsScore && (
+          <ScoreCard
+            label="Soft Skills"
+            score={softSkillsScore.score}
+            weight={softSkillsScore.weight}
+            feedback={softSkillsScore.feedback}
+          />
+        )}
+
+        {educationMatchScore && (
+          <ScoreCard
+            label="Education Match"
+            score={educationMatchScore.score}
+            weight={educationMatchScore.weight}
+            feedback={educationMatchScore.feedback}
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-body text-[13px] leading-[16px] text-subtle">
+                Required:
+              </span>
+              <span className="font-body text-[15px] leading-[24px] text-fg">
+                {educationMatchScore.requiredDegree}
+              </span>
+              <Tag variant={educationMatchScore.isMatch ? 'accent' : 'error'}>
+                {educationMatchScore.isMatch ? 'Match' : 'Mismatch'}
+              </Tag>
             </div>
-          )}
-        </ScoreCard>
-
-        <ScoreCard
-          label="Parseability"
-          score={parseabilityScore.score}
-          weight={parseabilityScore.weight}
-          feedback={parseabilityScore.feedback}
-        />
-
-        <ScoreCard
-          label="Section Completeness"
-          score={sectionCompletenessScore.score}
-          weight={sectionCompletenessScore.weight}
-          feedback={sectionCompletenessScore.feedback}
-        />
-
-        <ScoreCard
-          label="Content Quality"
-          score={contentQualityScore.score}
-          weight={contentQualityScore.weight}
-          feedback={contentQualityScore.feedback}
-        />
-
-        <ScoreCard
-          label="Job Title Alignment"
-          score={jobTitleAlignmentScore.score}
-          weight={jobTitleAlignmentScore.weight}
-          feedback={jobTitleAlignmentScore.feedback}
-        >
-          <div className="flex items-center gap-2">
-            <span className="font-body text-[13px] leading-[16px] text-subtle">
-              Target:
-            </span>
-            <span className="font-body text-[15px] font-medium leading-[24px] text-fg">
-              {jobTitleAlignmentScore.targetTitle}
-            </span>
-            <Tag variant={tagVariant(jobTitleAlignmentScore.alignmentLevel)}>
-              {jobTitleAlignmentScore.alignmentLevel}
-            </Tag>
-          </div>
-        </ScoreCard>
-
-        <ScoreCard
-          label="Experience Depth"
-          score={experienceDepthScore.score}
-          weight={experienceDepthScore.weight}
-          feedback={experienceDepthScore.feedback}
-        >
-          <p className="m-0 font-body text-[13px] leading-[16px] text-subtle">
-            {experienceDepthScore.totalYears} years total, {experienceDepthScore.relevantYears} relevant
-          </p>
-        </ScoreCard>
-
-        <ScoreCard
-          label="Soft Skills"
-          score={softSkillsScore.score}
-          weight={softSkillsScore.weight}
-          feedback={softSkillsScore.feedback}
-        />
-
-        <ScoreCard
-          label="Education Match"
-          score={educationMatchScore.score}
-          weight={educationMatchScore.weight}
-          feedback={educationMatchScore.feedback}
-        >
-          <div className="flex items-center gap-2">
-            <span className="font-body text-[13px] leading-[16px] text-subtle">
-              Required:
-            </span>
-            <span className="font-body text-[15px] leading-[24px] text-fg">
-              {educationMatchScore.requiredDegree}
-            </span>
-            <Tag variant={educationMatchScore.isMatch ? 'accent' : 'error'}>
-              {educationMatchScore.isMatch ? 'Match' : 'Mismatch'}
-            </Tag>
-          </div>
-        </ScoreCard>
+          </ScoreCard>
+        )}
       </div>
     </div>
   );

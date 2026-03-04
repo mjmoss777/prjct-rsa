@@ -120,12 +120,18 @@ export function CheckerForm() {
         type="submit"
         disabled={!fileName || pending}
         className={cn(
-          'w-full rounded-pill bg-accent px-8 py-3.5 font-body text-[16px] font-medium leading-[20px] text-on-accent transition-opacity duration-200 [touch-action:manipulation]',
+          'flex w-full items-center justify-center gap-2 rounded-pill bg-accent px-8 py-3.5 font-body text-[16px] font-medium leading-[20px] text-on-accent transition-opacity duration-200 [touch-action:manipulation]',
           !fileName || pending
             ? 'pointer-events-none opacity-40'
             : 'cursor-pointer hover:opacity-90 active:opacity-85',
         )}
       >
+        {pending && (
+          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+        )}
         {pending ? 'Analyzing\u2026' : 'Analyze Resume'}
       </button>
     </form>

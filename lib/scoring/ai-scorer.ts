@@ -2,6 +2,7 @@ import { generateObject } from 'ai';
 import { getModel } from '@/config/ai';
 import { fullAnalysisSchema, type FullAnalysisResult } from './schemas';
 import { SCORING_SYSTEM_PROMPT, buildAnalysisPrompt } from './prompts';
+import { CATEGORY_WEIGHTS } from './constants';
 
 export type AiScoringResult = FullAnalysisResult & {
   weights: {
@@ -15,23 +16,12 @@ export type AiScoringResult = FullAnalysisResult & {
   };
 };
 
-const CATEGORY_WEIGHTS = {
-  sectionCompleteness: 0.10,
-  hardSkillsMatch: 0.325,
-  contentQuality: 0.10,
-  jobTitleAlignment: 0.125,
-  experienceDepth: 0.125,
-  softSkills: 0.075,
-  educationMatch: 0.05,
-} as const;
-
 export async function scoreWithAi(
   resumeText: string,
   jobDescription: string,
 ): Promise<AiScoringResult> {
   const { object } = await generateObject({
     model: getModel(),
-    mode: 'tool',
     schema: fullAnalysisSchema,
     system: SCORING_SYSTEM_PROMPT,
     prompt: buildAnalysisPrompt(resumeText, jobDescription),
@@ -39,8 +29,14 @@ export async function scoreWithAi(
 
   return {
     ...object,
-    weights: CATEGORY_WEIGHTS,
+    weights: {
+      sectionCompleteness: CATEGORY_WEIGHTS.sectionCompleteness,
+      hardSkillsMatch: CATEGORY_WEIGHTS.hardSkillsMatch,
+      contentQuality: CATEGORY_WEIGHTS.contentQuality,
+      jobTitleAlignment: CATEGORY_WEIGHTS.jobTitleAlignment,
+      experienceDepth: CATEGORY_WEIGHTS.experienceDepth,
+      softSkills: CATEGORY_WEIGHTS.softSkills,
+      educationMatch: CATEGORY_WEIGHTS.educationMatch,
+    },
   };
 }
-
-export { CATEGORY_WEIGHTS };

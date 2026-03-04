@@ -1,6 +1,8 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
+import { useSession } from "@/config/auth/client";
 import {
     colors,
     fontVars,
@@ -13,20 +15,26 @@ import {
 
 const features = [
     {
-        title: "Contextual recall",
+        title: "ATS Score Checker",
         description:
-            "Surfaces relevant notes, docs, and past conversations exactly when you need them — no searching required.",
+            "Upload your resume and paste a job description. Get a detailed compatibility analysis with actionable feedback across 8 scoring categories.",
     },
     {
-        title: "Idea threading",
+        title: "Resume Builder",
         description:
-            "Connects fragments across your work into coherent threads, so nothing slips through the cracks.",
+            "Build ATS-optimized resumes with proven templates. Single-column layouts, standard fonts, and proper formatting — guaranteed to parse correctly.",
     },
     {
-        title: "Private by design",
+        title: "Instant Feedback",
         description:
-            "Your data stays yours. Local-first processing with end-to-end encryption for everything in the cloud.",
+            "See your analysis stream in real-time. Scores update live as each category is evaluated, so you know exactly where to improve.",
     },
+];
+
+const howItWorks = [
+    { step: "1", title: "Upload", description: "Drop your resume (PDF or DOCX) and paste the job description." },
+    { step: "2", title: "Analyze", description: "AI evaluates your resume across 8 categories against the JD." },
+    { step: "3", title: "Improve", description: "Follow specific recommendations to boost your ATS score." },
 ];
 
 const staggerContainer = {
@@ -53,6 +61,8 @@ const focusVisible = {
 } as const;
 
 export default function Homepage() {
+    const { data: session } = useSession();
+    const isLoggedIn = !!session?.user;
     const prefersReduced = useReducedMotion();
     const fadeUp = prefersReduced ? motionTokens.reducedFadeIn : motionTokens.fadeUp;
     const fadeDown = prefersReduced ? motionTokens.reducedFadeIn : motionTokens.fadeDown;
@@ -72,17 +82,18 @@ export default function Homepage() {
                 animate={fadeDown.visible}
                 transition={{ duration: dur ?? motionTokens.duration.fast, ease }}
             >
-                <span
-                    className={`${fontVars.display}`}
+                <Link
+                    href="/"
+                    className={`${fontVars.display} no-underline`}
                     style={{ ...typeScale.title, color: colors.foreground }}
                 >
-                    meld
-                </span>
+                    ResumeATS
+                </Link>
                 <div className="flex items-center" style={{ gap: spacing.navGap }}>
-                    {["Product", "Pricing", "About"].map((item) => (
+                    {["Features", "How it Works"].map((item) => (
                         <a
                             key={item}
-                            href="#"
+                            href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
                             className="transition-colors duration-200"
                             style={{
                                 ...typeScale.label,
@@ -97,23 +108,62 @@ export default function Homepage() {
                             {item}
                         </a>
                     ))}
-                    <a
-                        href="#"
-                        className="flex items-center justify-center transition-opacity duration-200 hover:opacity-90"
-                        style={{
-                            ...typeScale.buttonSm,
-                            backgroundColor: colors.accent,
-                            color: colors.onAccent,
-                            borderRadius: radii.pill,
-                            paddingBlock: "10px",
-                            paddingInline: "24px",
-                            touchAction: "manipulation",
-                        }}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusVisible)}
-                        onBlur={(e) => { e.currentTarget.style.outline = "none"; e.currentTarget.style.outlineOffset = ""; }}
-                    >
-                        Get started
-                    </a>
+                    {isLoggedIn ? (
+                        <Link
+                            href="/dashboard"
+                            className="flex items-center justify-center transition-opacity duration-200 hover:opacity-90"
+                            style={{
+                                ...typeScale.buttonSm,
+                                backgroundColor: colors.accent,
+                                color: colors.onAccent,
+                                borderRadius: radii.pill,
+                                paddingBlock: "10px",
+                                paddingInline: "24px",
+                                touchAction: "manipulation",
+                                textDecoration: "none",
+                            }}
+                        >
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                href="/sign-in"
+                                className="flex items-center justify-center transition-colors duration-200"
+                                style={{
+                                    ...typeScale.buttonSm,
+                                    fontWeight: 400,
+                                    border: `1px solid ${colors.borderSoft}`,
+                                    color: colors.foreground,
+                                    borderRadius: radii.pill,
+                                    paddingBlock: "10px",
+                                    paddingInline: "24px",
+                                    touchAction: "manipulation",
+                                    textDecoration: "none",
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.hoverTint)}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                            >
+                                Sign in
+                            </Link>
+                            <Link
+                                href="/sign-up"
+                                className="flex items-center justify-center transition-opacity duration-200 hover:opacity-90"
+                                style={{
+                                    ...typeScale.buttonSm,
+                                    backgroundColor: colors.accent,
+                                    color: colors.onAccent,
+                                    borderRadius: radii.pill,
+                                    paddingBlock: "10px",
+                                    paddingInline: "24px",
+                                    touchAction: "manipulation",
+                                    textDecoration: "none",
+                                }}
+                            >
+                                Get started
+                            </Link>
+                        </>
+                    )}
                 </div>
             </motion.nav>
 
@@ -152,7 +202,7 @@ export default function Homepage() {
                         }}
                     />
                     <span style={{ ...typeScale.tag, color: colors.muted }}>
-                        Now in public beta
+                        Free to use
                     </span>
                 </motion.div>
 
@@ -167,20 +217,20 @@ export default function Homepage() {
                     variants={fadeUp}
                     transition={{ duration: dur ?? 0.7, ease }}
                 >
-                    Your thinking,
+                    Beat the ATS.
                     <br />
-                    quietly amplified
+                    Land the interview.
                 </motion.h1>
 
                 {/* Subheading */}
                 <motion.p
-                    className="max-w-[480px] text-center"
+                    className="max-w-[520px] text-center"
                     style={{ ...typeScale.body, color: colors.muted }}
                     variants={fadeUp}
                     transition={{ duration: dur ?? motionTokens.duration.normal, ease }}
                 >
-                    Meld works alongside your train of thought — surfacing context,
-                    connecting ideas, and staying out of the way.
+                    Check your resume against real ATS scoring criteria, get actionable feedback,
+                    and build resumes that actually get parsed.
                 </motion.p>
 
                 {/* CTA Buttons */}
@@ -190,8 +240,8 @@ export default function Homepage() {
                     variants={fadeUp}
                     transition={{ duration: dur ?? motionTokens.duration.normal, ease }}
                 >
-                    <a
-                        href="#"
+                    <Link
+                        href="/sign-up"
                         className="flex items-center justify-center transition-opacity duration-200 hover:opacity-90"
                         style={{
                             ...typeScale.button,
@@ -201,14 +251,13 @@ export default function Homepage() {
                             paddingBlock: "14px",
                             paddingInline: "32px",
                             touchAction: "manipulation",
+                            textDecoration: "none",
                         }}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusVisible)}
-                        onBlur={(e) => { e.currentTarget.style.outline = "none"; e.currentTarget.style.outlineOffset = ""; }}
                     >
-                        Start for free
-                    </a>
+                        Check your resume
+                    </Link>
                     <a
-                        href="#"
+                        href="#how-it-works"
                         className="flex items-center justify-center transition-colors duration-200"
                         style={{
                             ...typeScale.button,
@@ -222,39 +271,15 @@ export default function Homepage() {
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.hoverTint)}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusVisible)}
-                        onBlur={(e) => { e.currentTarget.style.outline = "none"; e.currentTarget.style.outlineOffset = ""; }}
                     >
                         See how it works
                     </a>
-                </motion.div>
-
-                {/* Hero Image */}
-                <motion.div
-                    className="flex w-full items-center justify-center"
-                    style={{ paddingTop: "16px" }}
-                    variants={fadeUp}
-                    transition={{ duration: dur ?? motionTokens.duration.slow, ease }}
-                >
-                    <div
-                        style={{
-                            width: "1000px",
-                            maxWidth: "100%",
-                            height: "558px",
-                            borderRadius: radii.card,
-                            backgroundImage:
-                                "url(https://workers.paper.design/file-assets/01KJF8F5AWKS0D7V3A7SYW5SVC/5SW3KHCZAMNE58326FVR2ZS4ZJ.png)",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                        }}
-                        role="img"
-                        aria-label="Abstract green shapes illustrating Meld"
-                    />
                 </motion.div>
             </motion.section>
 
             {/* Features */}
             <motion.section
+                id="features"
                 className="flex w-full items-start justify-center"
                 style={{
                     paddingInline: spacing.sectionX,
@@ -269,7 +294,7 @@ export default function Homepage() {
                 {features.map((feature) => (
                     <motion.div
                         key={feature.title}
-                        className="flex max-w-[280px] flex-col"
+                        className="flex max-w-[320px] flex-col"
                         style={{ gap: spacing.element }}
                         variants={fadeUp}
                         transition={{ duration: dur ?? motionTokens.duration.normal, ease }}
@@ -287,6 +312,63 @@ export default function Homepage() {
                 ))}
             </motion.section>
 
+            {/* How it Works */}
+            <motion.section
+                id="how-it-works"
+                className="flex w-full flex-col items-center"
+                style={{
+                    paddingInline: spacing.sectionX,
+                    paddingBottom: spacing.sectionY,
+                    gap: "48px",
+                }}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-80px" }}
+                variants={staggerContainer}
+            >
+                <motion.h2
+                    className={`text-center ${fontVars.display}`}
+                    style={{ ...typeScale.title, color: colors.foreground }}
+                    variants={fadeUp}
+                    transition={{ duration: dur ?? motionTokens.duration.normal, ease }}
+                >
+                    How it works
+                </motion.h2>
+                <div className="flex items-start justify-center" style={{ gap: spacing.feature }}>
+                    {howItWorks.map((item) => (
+                        <motion.div
+                            key={item.step}
+                            className="flex max-w-[280px] flex-col items-center text-center"
+                            style={{ gap: spacing.element }}
+                            variants={fadeUp}
+                            transition={{ duration: dur ?? motionTokens.duration.normal, ease }}
+                        >
+                            <span
+                                className="flex items-center justify-center rounded-full"
+                                style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    backgroundColor: colors.accent,
+                                    color: colors.onAccent,
+                                    ...typeScale.buttonSm,
+                                }}
+                            >
+                                {item.step}
+                            </span>
+                            <h3
+                                className={fontVars.display}
+                                style={{ ...typeScale.heading, color: colors.foreground }}
+                            >
+                                {item.title}
+                            </h3>
+                            <p style={{ ...typeScale.bodySm, color: colors.muted }}>
+                                {item.description}
+                            </p>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.section>
+
             {/* Footer */}
             <motion.footer
                 className="flex w-full items-center justify-between"
@@ -301,10 +383,10 @@ export default function Homepage() {
                 transition={{ duration: dur ?? motionTokens.duration.fast, ease }}
             >
                 <span style={{ ...typeScale.caption, color: colors.subtle }}>
-                    &copy; 2026 Meld. All rights reserved.
+                    &copy; 2026 ResumeATS. All rights reserved.
                 </span>
                 <div className="flex items-center" style={{ gap: "32px" }}>
-                    {["Privacy", "Terms", "Twitter"].map((item) => (
+                    {["Privacy", "Terms"].map((item) => (
                         <a
                             key={item}
                             href="#"
@@ -316,8 +398,6 @@ export default function Homepage() {
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.color = colors.muted)}
                             onMouseLeave={(e) => (e.currentTarget.style.color = colors.subtle)}
-                            onFocus={(e) => Object.assign(e.currentTarget.style, focusVisible)}
-                            onBlur={(e) => { e.currentTarget.style.outline = "none"; e.currentTarget.style.outlineOffset = ""; }}
                         >
                             {item}
                         </a>

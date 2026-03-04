@@ -208,6 +208,7 @@ async function seed() {
     extractedText: "Admin User — Senior Software Engineer…",
     jobDescription: "Looking for a senior full-stack engineer with React and Node.js experience.",
     jobTitle: "Senior Software Engineer",
+    status: 'complete',
     overallScore: 82.5,
     parseabilityScore: {
       score: 95,
