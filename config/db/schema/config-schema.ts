@@ -1,4 +1,4 @@
-import { pgTable, serial, text, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, jsonb, timestamp, boolean } from 'drizzle-orm/pg-core';
 
 type SocialLink = {
   url: string;
@@ -52,6 +52,19 @@ export const footerList = pgTable('footer_list', {
   id: serial('id').primaryKey(),
   listLabel: text('list_label').notNull(),
   listItems: jsonb('list_items').$type<FooterListItem[]>().notNull(),
+});
+
+export type AiSource = 'openrouter' | 'nvidia' | 'aistudio' | 'togetherai';
+
+export const aiModel = pgTable('ai_model', {
+  id: serial('id').primaryKey(),
+  modelId: text('model_id').notNull().unique(),
+  name: text('name').notNull(),
+  provider: text('provider').notNull(),
+  source: text('source').notNull().$type<AiSource>().default('openrouter'),
+  isFree: boolean('is_free').notNull().default(false),
+  isDefault: boolean('is_default').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 export const page = pgTable('page', {

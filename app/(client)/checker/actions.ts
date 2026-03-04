@@ -31,7 +31,7 @@ export async function analyzeResume(formData: FormData) {
     .insert(resumeScan)
     .values({
       // userId: session.user.id,
-      userId: '1',
+      userId: 'test-user-1', // TODO: replace with session.user.id
       fileName: file.name,
       fileType: parsed.fileType,
       fileSize: file.size,

@@ -1,0 +1,92 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1933 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 50 750 Tm
+(John Doe - Software Engineer) Tj
+1 0 0 1 50 736 Tm
+(john.doe@email.com | \(555\) 123-4567 | San Francisco, CA) Tj
+1 0 0 1 50 722 Tm
+() Tj
+1 0 0 1 50 708 Tm
+(PROFESSIONAL SUMMARY) Tj
+1 0 0 1 50 694 Tm
+(Experienced software engineer with 5+ years building scalable web applications.) Tj
+1 0 0 1 50 680 Tm
+(Proficient in TypeScript, React, Node.js, and cloud infrastructure.) Tj
+1 0 0 1 50 666 Tm
+(Led teams of 3-5 engineers delivering products used by 100K+ users.) Tj
+1 0 0 1 50 652 Tm
+() Tj
+1 0 0 1 50 638 Tm
+(WORK EXPERIENCE) Tj
+1 0 0 1 50 624 Tm
+(Senior Software Engineer | Acme Corp | Jan 2022 - Present) Tj
+1 0 0 1 50 610 Tm
+(- Architected real-time collaboration platform serving 50K daily active users) Tj
+1 0 0 1 50 596 Tm
+(- Reduced API response times by 40% through query optimization and Redis caching) Tj
+1 0 0 1 50 582 Tm
+(- Mentored 3 junior developers with weekly code reviews) Tj
+1 0 0 1 50 568 Tm
+(- Implemented CI/CD pipeline reducing deployment time from 2 hours to 15 minutes) Tj
+1 0 0 1 50 554 Tm
+() Tj
+1 0 0 1 50 540 Tm
+(Software Engineer | TechStart Inc | Jun 2019 - Dec 2021) Tj
+1 0 0 1 50 526 Tm
+(- Developed customer-facing dashboard using React and TypeScript) Tj
+1 0 0 1 50 512 Tm
+(- Built RESTful APIs with Node.js handling 10K+ requests per minute) Tj
+1 0 0 1 50 498 Tm
+(- Migrated legacy monolith to microservices architecture) Tj
+1 0 0 1 50 484 Tm
+(- Collaborated with product team on 12 feature releases) Tj
+1 0 0 1 50 470 Tm
+() Tj
+1 0 0 1 50 456 Tm
+(EDUCATION) Tj
+1 0 0 1 50 442 Tm
+(BS Computer Science | UC Berkeley | 2019 | GPA 3.7) Tj
+1 0 0 1 50 428 Tm
+() Tj
+1 0 0 1 50 414 Tm
+(SKILLS) Tj
+1 0 0 1 50 400 Tm
+(TypeScript, JavaScript, Python, Go, React, Next.js, Node.js, PostgreSQL, MongoDB, Redis, AWS, Docker, Kubernetes) Tj
+1 0 0 1 50 386 Tm
+() Tj
+1 0 0 1 50 372 Tm
+(CERTIFICATIONS) Tj
+1 0 0 1 50 358 Tm
+(AWS Certified Solutions Architect - Associate | 2023) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000002226 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2296
+%%EOF
