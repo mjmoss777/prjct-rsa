@@ -31,6 +31,9 @@ export const siteSettings = pgTable('site_settings', {
   openrouterApiKey: text('openrouter_api_key'),
   openrouterBaseUrl: text('openrouter_base_url'),
   openrouterModel: text('openrouter_model'),
+  resendApiKey: text('resend_api_key'),
+  emailFromAddress: text('email_from_address'),
+  emailFromName: text('email_from_name'),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 

@@ -15,6 +15,9 @@ type Settings = {
   bingAnalyticsId: string | null;
   posthogApiKey: string | null;
   posthogBaseUrl: string | null;
+  resendApiKey: string | null;
+  emailFromAddress: string | null;
+  emailFromName: string | null;
 };
 
 export function SettingsEditor({ settings }: { settings: Settings | null }) {
@@ -33,6 +36,10 @@ export function SettingsEditor({ settings }: { settings: Settings | null }) {
   const [posthogApiKey, setPosthogApiKey] = useState(settings?.posthogApiKey ?? '');
   const [posthogBaseUrl, setPosthogBaseUrl] = useState(settings?.posthogBaseUrl ?? '');
 
+  const [resendApiKey, setResendApiKey] = useState(settings?.resendApiKey ?? '');
+  const [emailFromAddress, setEmailFromAddress] = useState(settings?.emailFromAddress ?? '');
+  const [emailFromName, setEmailFromName] = useState(settings?.emailFromName ?? '');
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -48,6 +55,9 @@ export function SettingsEditor({ settings }: { settings: Settings | null }) {
         bingAnalyticsId,
         posthogApiKey,
         posthogBaseUrl,
+        resendApiKey,
+        emailFromAddress,
+        emailFromName,
       });
       router.refresh();
     } finally {
@@ -208,6 +218,59 @@ export function SettingsEditor({ settings }: { settings: Settings | null }) {
           <span className="font-body text-[13px] text-subtle">
             Defaults to https://us.i.posthog.com if left empty
           </span>
+        </label>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Email Section */}
+      <section className="flex flex-col gap-6">
+        <h2 className="font-body text-[13px] font-medium uppercase tracking-[0.04em] text-subtle">
+          Email (Resend)
+        </h2>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="font-body text-[13px] uppercase tracking-[0.04em] text-subtle">
+            Resend API Key
+          </span>
+          <input
+            type="password"
+            value={resendApiKey}
+            onChange={(e) => setResendApiKey(e.target.value)}
+            className={inputClass}
+            placeholder="re_XXXXXXXXXXXXX"
+            autoComplete="off"
+          />
+          <span className="font-body text-[13px] text-subtle">
+            Required for OTP email verification, passwordless sign-in, and password reset
+          </span>
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="font-body text-[13px] uppercase tracking-[0.04em] text-subtle">
+            From Address
+          </span>
+          <input
+            type="email"
+            value={emailFromAddress}
+            onChange={(e) => setEmailFromAddress(e.target.value)}
+            className={inputClass}
+            placeholder="noreply@yourdomain.com"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="font-body text-[13px] uppercase tracking-[0.04em] text-subtle">
+            From Name
+          </span>
+          <input
+            type="text"
+            value={emailFromName}
+            onChange={(e) => setEmailFromName(e.target.value)}
+            className={inputClass}
+            placeholder="My App"
+          />
         </label>
       </section>
 

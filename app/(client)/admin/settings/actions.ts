@@ -39,6 +39,9 @@ export async function updateSettings(data: {
   bingAnalyticsId: string;
   posthogApiKey: string;
   posthogBaseUrl: string;
+  resendApiKey: string;
+  emailFromAddress: string;
+  emailFromName: string;
 }) {
   await requireAdmin();
 
@@ -55,6 +58,9 @@ export async function updateSettings(data: {
     bingAnalyticsId: coalesce(data.bingAnalyticsId),
     posthogApiKey: coalesce(data.posthogApiKey),
     posthogBaseUrl: coalesce(data.posthogBaseUrl),
+    resendApiKey: coalesce(data.resendApiKey),
+    emailFromAddress: coalesce(data.emailFromAddress),
+    emailFromName: coalesce(data.emailFromName),
     updatedAt: new Date(),
   };
 
