@@ -13,6 +13,7 @@ const navItems = [
 
 const adminItems = [
   { label: 'Pages', href: '/admin/pages' },
+  { label: 'Settings', href: '/admin/settings' },
 ];
 
 export function ClientNav() {
@@ -21,7 +22,7 @@ export function ClientNav() {
   const isAdmin = (sessionData?.user as { role?: string } | undefined)?.role === 'admin';
 
   return (
-    <aside className="flex h-screen w-[240px] shrink-0 flex-col border-r border-border bg-surface">
+    <aside className="sticky top-0 flex h-screen w-[240px] shrink-0 flex-col border-r border-border bg-surface">
       {/* Logo */}
       <div className="px-6 py-6">
         <Link href="/" className="font-display text-[24px] leading-[30px] tracking-[-0.02em] text-fg no-underline">
