@@ -67,6 +67,14 @@ export const aiModel = pgTable('ai_model', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+export const originDomain = pgTable('origin_domain', {
+  id: serial('id').primaryKey(),
+  domain: text('domain').notNull().unique(),
+  isDefault: boolean('is_default').notNull().default(false),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export const page = pgTable('page', {
   id: serial('id').primaryKey(),
   slug: text('slug').notNull().unique(),

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { eq, and } from 'drizzle-orm';
@@ -7,9 +8,31 @@ import { resumeScan } from '@/config/db/schema/ats-schema';
 import { getStorage } from '@/lib/storage';
 import { ScanResultsView } from '@/components/pages/checker/ScanResultsView';
 
-export const metadata = {
-  title: 'Scan Results',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ scanId: string }>;
+}): Promise<Metadata> {
+  const { scanId } = await params;
+  const id = parseInt(scanId, 10);
+  if (isNaN(id)) return { title: 'Scan Not Found' };
+
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { title: 'Scan Results' };
+
+  const scan = await db.query.resumeScan.findFirst({
+    where: and(eq(resumeScan.id, id), eq(resumeScan.userId, session.user.id)),
+  });
+
+  const title = scan
+    ? `Scan: ${scan.fileName}${scan.overallScore != null ? ` (${Math.round(scan.overallScore)}%)` : ''}`
+    : 'Scan Results';
+
+  return {
+    title,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function ScanResultPage({
   params,

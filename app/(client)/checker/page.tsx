@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import { CheckerForm } from '@/components/pages/checker/CheckerForm';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'ATS Resume Checker',
-  description: 'Upload your resume and paste a job description to get a detailed ATS compatibility score.',
+  description:
+    'Upload your resume and paste a job description to get a detailed ATS compatibility score with actionable feedback.',
+  openGraph: {
+    title: 'ATS Resume Checker',
+    description: 'Get a detailed ATS compatibility score for your resume.',
+  },
+  robots: { index: false },
 };
 
 export default function CheckerPage() {

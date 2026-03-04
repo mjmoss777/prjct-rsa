@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif, DM_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
@@ -24,9 +24,51 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#2D5A3D",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "ResumeATS - ATS Resume Checker & Builder",
-  description: "Beat the ATS. Land the interview. Check your resume against ATS systems and build ATS-optimized templates.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://resume-ats.com"),
+  title: {
+    default: "ResumeATS — ATS Resume Checker & Builder",
+    template: "%s | ResumeATS",
+  },
+  description:
+    "Beat the ATS. Land the interview. Check your resume against ATS systems and build ATS-optimized resumes.",
+  keywords: [
+    "ATS resume checker",
+    "resume builder",
+    "ATS optimization",
+    "applicant tracking system",
+    "resume score",
+    "job application",
+    "resume keywords",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "ResumeATS",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({

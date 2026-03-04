@@ -1,6 +1,16 @@
+import type { Metadata } from 'next';
 import { ResumeForm } from '@/components/pages/builder/ResumeForm';
 
-export const metadata = { title: 'Resume Builder' };
+export const metadata: Metadata = {
+  title: 'Resume Builder',
+  description:
+    'Build an ATS-optimized resume with professional templates. Download as DOCX or PDF.',
+  openGraph: {
+    title: 'Resume Builder',
+    description: 'Build ATS-optimized resumes with professional templates.',
+  },
+  robots: { index: false },
+};
 
 export default function BuilderPage() {
   return (

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { user, account, session, verification } from "./schema/auth-schema";
-import { siteSettings, navbarItem, sidebarItem, footerList, page } from "./schema/config-schema";
+import { siteSettings, navbarItem, sidebarItem, footerList, page, originDomain } from "./schema/config-schema";
 import { uploadedFile } from "./schema/file-schema";
 import { resumeScan, savedResume } from "./schema/ats-schema";
 import { eq } from "drizzle-orm";
@@ -39,6 +39,7 @@ async function seed() {
   await db.delete(navbarItem);
   await db.delete(sidebarItem);
   await db.delete(footerList);
+  await db.delete(originDomain);
   await db.delete(page);
   console.log("  Cleared existing data");
 
@@ -114,6 +115,14 @@ async function seed() {
     },
   ]);
   console.log("  Created footer lists");
+
+  // --- Origin Domain ---
+  await db.insert(originDomain).values({
+    domain: "resume-ats.com",
+    isDefault: true,
+    isActive: true,
+  });
+  console.log("  Created origin domain");
 
   // --- Pages ---
   await db.insert(page).values([

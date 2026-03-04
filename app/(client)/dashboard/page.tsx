@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { eq, desc, avg, count } from 'drizzle-orm';
 import { auth } from '@/config/auth';
@@ -8,7 +9,10 @@ import { ScanHistoryTable } from '@/components/pages/dashboard/ScanHistoryTable'
 import { SavedResumesGrid } from '@/components/pages/dashboard/SavedResumesGrid';
 import Link from 'next/link';
 
-export const metadata = { title: 'Dashboard' };
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({ headers: await headers() });
