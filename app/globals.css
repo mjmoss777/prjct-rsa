@@ -166,3 +166,132 @@ body {
   max-width: 100%;
   border-radius: 8px;
 }
+
+/* ── Meld theme for @uiw/react-md-editor ── */
+.w-md-editor {
+  --md-editor-background-color: #F5F0E8 !important;
+  --md-editor-box-shadow-color: #D4CDBE !important;
+  --md-editor-font-family: var(--font-body) !important;
+  --color-fg-default: #1A1A18 !important;
+  --color-fg-muted: #6B6960 !important;
+  --color-fg-subtle: #A39E93 !important;
+  --color-canvas-default: #F5F0E8 !important;
+  --color-canvas-subtle: #E8E3DB !important;
+  --color-border-default: #D4CDBE !important;
+  --color-border-muted: #D4CDBE !important;
+  --color-neutral-muted: rgba(107, 105, 96, 0.1) !important;
+  --color-accent-fg: #2D5A3D !important;
+  --color-accent-emphasis: #2D5A3D !important;
+  border-radius: 8px !important;
+  border: 1px solid #D4CDBE !important;
+  box-shadow: none !important;
+}
+
+.w-md-editor-toolbar {
+  background-color: #EDE8E0 !important;
+  border-bottom: 1px solid #D4CDBE !important;
+  border-radius: 8px 8px 0 0 !important;
+  padding: 4px 4px !important;
+}
+
+.w-md-editor-toolbar li > button {
+  color: #6B6960 !important;
+  border-radius: 6px !important;
+}
+
+.w-md-editor-toolbar li > button:hover,
+.w-md-editor-toolbar li > button:focus {
+  color: #1A1A18 !important;
+  background-color: rgba(107, 105, 96, 0.1) !important;
+}
+
+.w-md-editor-toolbar li.active > button {
+  color: #2D5A3D !important;
+  background-color: rgba(45, 90, 61, 0.08) !important;
+}
+
+.w-md-editor-toolbar-divider {
+  background-color: #D4CDBE !important;
+}
+
+.w-md-editor-content {
+  background-color: #F5F0E8 !important;
+}
+
+.w-md-editor-text-input {
+  color: #1A1A18 !important;
+  caret-color: #1A1A18 !important;
+  font-family: var(--font-body) !important;
+  font-size: 15px !important;
+  line-height: 24px !important;
+}
+
+.w-md-editor-text-pre,
+.w-md-editor-text-pre > code {
+  font-family: var(--font-body) !important;
+  font-size: 15px !important;
+  line-height: 24px !important;
+}
+
+.w-md-editor-preview {
+  font-family: var(--font-body) !important;
+  padding: 16px 20px !important;
+}
+
+.w-md-editor-preview .wmde-markdown {
+  background-color: #F5F0E8 !important;
+  color: #1A1A18 !important;
+  font-family: var(--font-body) !important;
+  font-size: 15px !important;
+  line-height: 24px !important;
+}
+
+.w-md-editor-preview .wmde-markdown h1,
+.w-md-editor-preview .wmde-markdown h2,
+.w-md-editor-preview .wmde-markdown h3,
+.w-md-editor-preview .wmde-markdown h4 {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  color: #1A1A18 !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+.w-md-editor-preview .wmde-markdown a {
+  color: #2D5A3D !important;
+}
+
+.w-md-editor-preview .wmde-markdown code {
+  background-color: #E8E3DB !important;
+  color: #1A1A18 !important;
+  border-radius: 4px !important;
+  font-size: 0.9em !important;
+}
+
+.w-md-editor-preview .wmde-markdown pre {
+  background-color: #E8E3DB !important;
+  border-radius: 8px !important;
+}
+
+.w-md-editor-preview .wmde-markdown hr {
+  border-color: #D4CDBE !important;
+  background-color: #D4CDBE !important;
+}
+
+.w-md-editor-preview .wmde-markdown blockquote {
+  border-left-color: #D4CDBE !important;
+  color: #6B6960 !important;
+}
+
+.w-md-editor-preview .wmde-markdown table th,
+.w-md-editor-preview .wmde-markdown table td {
+  border-color: #D4CDBE !important;
+}
+
+.w-md-editor-bar {
+  background-color: #E8E3DB !important;
+}
+
+.w-md-editor-bar svg {
+  color: #A39E93 !important;
+}
