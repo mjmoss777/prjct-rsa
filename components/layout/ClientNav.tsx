@@ -21,10 +21,20 @@ const adminItems = [
   { label: 'Subscribers', href: '/admin/subscribers' },
 ];
 
-export function ClientNav() {
+export function ClientNav({ disabled = false }: { disabled?: boolean }) {
   const pathname = usePathname();
   const { data: sessionData } = useSession();
   const isAdmin = (sessionData?.user as { role?: string } | undefined)?.role === 'admin';
+
+  const linkClass = (isActive: boolean) =>
+    cn(
+      'rounded-[8px] px-3 py-2.5 font-body text-[15px] leading-[20px] no-underline transition-colors duration-150',
+      disabled
+        ? 'pointer-events-none opacity-40 text-muted'
+        : isActive
+          ? 'bg-accent/10 font-medium text-accent'
+          : 'text-muted hover:bg-hover-tint hover:text-fg',
+    );
 
   return (
     <aside className="sticky top-0 flex h-screen w-[240px] shrink-0 flex-col border-r border-border bg-surface">
@@ -37,55 +47,41 @@ export function ClientNav() {
 
       {/* Nav links */}
       <nav className="flex flex-1 flex-col gap-1 px-3">
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'rounded-[8px] px-3 py-2.5 font-body text-[15px] leading-[20px] no-underline transition-colors duration-150',
-                isActive
-                  ? 'bg-accent/10 font-medium text-accent'
-                  : 'text-muted hover:bg-hover-tint hover:text-fg',
-              )}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-disabled={disabled}
+            tabIndex={disabled ? -1 : undefined}
+            className={linkClass(pathname.startsWith(item.href))}
+          >
+            {item.label}
+          </Link>
+        ))}
 
         {/* Admin section */}
-        {isAdmin && (
+        {isAdmin && !disabled && (
           <>
             <div className="mt-4 border-t border-border pt-4">
               <span className="px-3 font-body text-[13px] font-medium uppercase tracking-[0.04em] text-subtle">
                 Admin
               </span>
             </div>
-            {adminItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'rounded-[8px] px-3 py-2.5 font-body text-[15px] leading-[20px] no-underline transition-colors duration-150',
-                    isActive
-                      ? 'bg-accent/10 font-medium text-accent'
-                      : 'text-muted hover:bg-hover-tint hover:text-fg',
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            {adminItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={linkClass(pathname.startsWith(item.href))}
+              >
+                {item.label}
+              </Link>
+            ))}
           </>
         )}
       </nav>
 
       {/* Usage widget */}
-      <UsageWidget />
+      {!disabled && <UsageWidget />}
 
       {/* Sign out */}
       <div className="border-t border-border px-3 py-4">
