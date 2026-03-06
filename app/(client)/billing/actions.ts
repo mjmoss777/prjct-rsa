@@ -58,7 +58,7 @@ export async function createCheckoutSession(): Promise<string> {
   const productId = process.env.POLAR_PRO_PRODUCT_ID;
   if (!productId) throw new Error('Payment not configured');
 
-  return createCheckoutUrl(session.user.id, productId);
+  return createCheckoutUrl(session.user.id, productId, session.user.email);
 }
 
 export async function getPortalUrl(): Promise<string> {
