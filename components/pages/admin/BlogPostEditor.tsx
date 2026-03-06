@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { createBlogPost, updateBlogPost } from '@/app/(client)/admin/blog/actions';
+import { getUploadSignature } from '@/app/(client)/admin/blog/upload-actions';
+import { uploadToUploadcare } from '@/lib/uploadcare';
 import type { BlogCategory, TemplateData } from '@/config/db/schema/blog-schema';
 
 const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false });
@@ -64,6 +66,9 @@ export function BlogPostEditor({ post }: { post?: BlogPostData }) {
   const [publishedAt, setPublishedAt] = useState(toDateInputValue(post?.publishedAt ?? null));
   const [slugManual, setSlugManual] = useState(isEdit);
   const [saving, setSaving] = useState(false);
+  const [uploadingFeatured, setUploadingFeatured] = useState(false);
+  const editorFileInputRef = useRef<HTMLInputElement>(null);
+  const featuredFileInputRef = useRef<HTMLInputElement>(null);
 
   // Template data
   const td = post?.templateData ?? {};
@@ -93,6 +98,60 @@ export function BlogPostEditor({ post }: { post?: BlogPostData }) {
     if (faqs.length > 0) data.faqs = faqs.filter((f) => f.question && f.answer);
     return data;
   }
+
+  async function handleImageUpload(file: File, insertInEditor = true): Promise<string | null> {
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be under 5MB');
+      return null;
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed');
+      return null;
+    }
+
+    const placeholder = `![Uploading ${file.name}...](uploading-${Date.now()})`;
+
+    if (insertInEditor) {
+      const textarea = document.querySelector(
+        '.w-md-editor-text-input',
+      ) as HTMLTextAreaElement | null;
+      const pos = textarea?.selectionStart ?? content.length;
+      setContent((prev) => {
+        const before = prev.slice(0, pos);
+        const after = prev.slice(pos);
+        const sep = before.length > 0 && !before.endsWith('\n') ? '\n' : '';
+        return before + sep + placeholder + '\n' + after;
+      });
+    }
+
+    try {
+      const { signature, expire } = await getUploadSignature();
+      const url = await uploadToUploadcare(file, signature, expire);
+      if (insertInEditor) {
+        setContent((prev) => prev.replace(placeholder, `![${file.name}](${url})`));
+      }
+      return url;
+    } catch (err) {
+      if (insertInEditor) {
+        setContent((prev) => prev.replace(placeholder + '\n', '').replace(placeholder, ''));
+      }
+      alert('Upload failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      return null;
+    }
+  }
+
+  const imageUploadCommand = {
+    name: 'image',
+    keyCommand: 'image',
+    icon: (
+      <svg viewBox="0 0 20 20" width="13" height="13" fill="currentColor">
+        <path d="M15 9c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4-7H1c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1h18c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm-1 13l-6-5-2 2-4-5-4 8V4h16v11z" />
+      </svg>
+    ),
+    execute: () => {
+      editorFileInputRef.current?.click();
+    },
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -130,6 +189,34 @@ export function BlogPostEditor({ post }: { post?: BlogPostData }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* Hidden file inputs for image uploads */}
+      <input
+        ref={editorFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (file) await handleImageUpload(file);
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={featuredFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          setUploadingFeatured(true);
+          const url = await handleImageUpload(file, false);
+          if (url) setFeaturedImage(url);
+          setUploadingFeatured(false);
+          e.target.value = '';
+        }}
+      />
+
       {/* Title */}
       <label className="flex flex-col gap-1.5">
         <span className="font-body text-[13px] uppercase tracking-[0.04em] text-subtle">
@@ -242,18 +329,37 @@ export function BlogPostEditor({ post }: { post?: BlogPostData }) {
       </label>
 
       {/* Featured Image */}
-      <label className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <span className="font-body text-[13px] uppercase tracking-[0.04em] text-subtle">
-          Featured Image URL
+          Featured Image
         </span>
-        <input
-          type="text"
-          value={featuredImage}
-          onChange={(e) => setFeaturedImage(e.target.value)}
-          className={inputClass}
-          placeholder="https://..."
-        />
-      </label>
+        {featuredImage ? (
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={featuredImage}
+              alt="Featured"
+              className="h-20 w-32 rounded-[8px] border border-border object-cover"
+            />
+            <button
+              type="button"
+              onClick={() => setFeaturedImage('')}
+              className="rounded-full border border-error-soft bg-transparent px-3 py-1.5 font-body text-[13px] text-error transition-colors hover:bg-error/5 [touch-action:manipulation]"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={uploadingFeatured}
+            onClick={() => featuredFileInputRef.current?.click()}
+            className="w-fit rounded-full border border-border-soft bg-transparent px-4 py-2 font-body text-[14px] font-medium text-fg transition-colors hover:bg-hover-tint disabled:opacity-60 [touch-action:manipulation]"
+          >
+            {uploadingFeatured ? 'Uploading...' : 'Upload Image'}
+          </button>
+        )}
+      </div>
 
       {/* Published At */}
       <label className="flex flex-col gap-1.5">
@@ -437,12 +543,46 @@ export function BlogPostEditor({ post }: { post?: BlogPostData }) {
         <span className="font-body text-[13px] uppercase tracking-[0.04em] text-subtle">
           Content
         </span>
-        <div data-color-mode="light">
+        <div
+          data-color-mode="light"
+          onDrop={(e) => {
+            const files = e.dataTransfer?.files;
+            if (!files?.length) return;
+            for (const file of Array.from(files)) {
+              if (file.type.startsWith('image/')) {
+                e.preventDefault();
+                handleImageUpload(file);
+                return;
+              }
+            }
+          }}
+          onDragOver={(e) => {
+            if (e.dataTransfer?.types?.includes('Files')) e.preventDefault();
+          }}
+        >
           <MDEditor
             value={content}
             onChange={(val) => setContent(val ?? '')}
             height={500}
             preview="live"
+            commandsFilter={(cmd) => {
+              if (cmd.name === 'image') return imageUploadCommand;
+              return cmd;
+            }}
+            textareaProps={{
+              onPaste: (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+                const items = e.clipboardData?.items;
+                if (!items) return;
+                for (const item of Array.from(items)) {
+                  if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) handleImageUpload(file);
+                    return;
+                  }
+                }
+              },
+            }}
           />
         </div>
       </div>
