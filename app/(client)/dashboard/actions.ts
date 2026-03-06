@@ -5,6 +5,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { auth } from '@/config/auth';
 import { db } from '@/config/db';
 import { resumeScan, savedResume } from '@/config/db/schema/ats-schema';
+import { getStorage } from '@/lib/storage';
 
 export async function getRecentScans(limit = 10) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -46,7 +47,20 @@ export async function deleteScan(scanId: number) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) throw new Error('Unauthorized');
 
+  // Fetch fileUrl before deleting so we can clean up storage
+  const [scan] = await db
+    .select({ fileUrl: resumeScan.fileUrl })
+    .from(resumeScan)
+    .where(and(eq(resumeScan.id, scanId), eq(resumeScan.userId, session.user.id)))
+    .limit(1);
+
   await db
     .delete(resumeScan)
     .where(and(eq(resumeScan.id, scanId), eq(resumeScan.userId, session.user.id)));
+
+  // Clean up the uploaded file
+  if (scan?.fileUrl) {
+    const storage = getStorage();
+    storage.remove(scan.fileUrl).catch(() => {});
+  }
 }

@@ -7,6 +7,8 @@ import { savedResume } from '@/config/db/schema/ats-schema';
 import { getTemplate } from '@/lib/templates/configs';
 import { generateDocx } from '@/lib/generators/docx-generator';
 import { generatePdf } from '@/lib/generators/pdf-generator';
+import { rateLimit } from '@/lib/rate-limit';
+import { log } from '@/lib/logger';
 
 export async function GET(
   request: NextRequest,
@@ -15,6 +17,12 @@ export async function GET(
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Per-request rate limit: 10 downloads per minute
+  const rl = await rateLimit(`download:${session.user.id}`, { max: 10, windowSeconds: 60 });
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Too many requests. Try again shortly.' }, { status: 429 });
   }
 
   const { format } = await params;
@@ -37,25 +45,30 @@ export async function GET(
   const style = getTemplate(resume.templateType);
   const safeName = (resume.name || 'resume').replace(/[^a-zA-Z0-9_-]/g, '_');
 
-  if (format === 'docx') {
-    const buffer = await generateDocx(resume.resumeData, style);
-    return new NextResponse(new Uint8Array(buffer), {
-      headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${safeName}.docx"`,
-      },
-    });
-  }
+  try {
+    if (format === 'docx') {
+      const buffer = await generateDocx(resume.resumeData, style);
+      return new NextResponse(new Uint8Array(buffer), {
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Content-Disposition': `attachment; filename="${safeName}.docx"`,
+        },
+      });
+    }
 
-  if (format === 'pdf') {
-    const buffer = await generatePdf(resume.resumeData, style);
-    return new NextResponse(new Uint8Array(buffer), {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${safeName}.pdf"`,
-      },
-    });
-  }
+    if (format === 'pdf') {
+      const buffer = await generatePdf(resume.resumeData, style);
+      return new NextResponse(new Uint8Array(buffer), {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${safeName}.pdf"`,
+        },
+      });
+    }
 
-  return NextResponse.json({ error: 'Unsupported format. Use docx or pdf.' }, { status: 400 });
+    return NextResponse.json({ error: 'Unsupported format. Use docx or pdf.' }, { status: 400 });
+  } catch (err) {
+    log.error('Download generation failed', err, { resumeId, format });
+    return NextResponse.json({ error: 'Failed to generate file.' }, { status: 500 });
+  }
 }

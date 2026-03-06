@@ -12,6 +12,8 @@ import { CATEGORY_WEIGHTS } from '@/lib/scoring/constants';
 import { checkRequestLimit, trackUsage } from '@/lib/usage';
 import type { PlanType } from '@/lib/plans';
 import { detectInjection } from '@/lib/sanitize';
+import { rateLimit } from '@/lib/rate-limit';
+import { log } from '@/lib/logger';
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -36,6 +38,12 @@ export async function POST(req: Request) {
       { error: 'Monthly analysis limit reached', used: usage.used, limit: usage.limit },
       { status: 429 },
     );
+  }
+
+  // Per-request rate limit: 10 analyses per minute
+  const rl = await rateLimit(`analyze:${userId}`, { max: 10, windowSeconds: 60 });
+  if (!rl.allowed) {
+    return Response.json({ error: 'Too many requests. Try again shortly.' }, { status: 429 });
   }
 
   const { scanId } = (await req.json()) as { scanId: number };
@@ -63,67 +71,77 @@ export async function POST(req: Request) {
 
   const modelId = process.env.AI_MODEL || process.env.OPENROUTER_MODEL || 'openai/gpt-4o';
 
-  const result = streamObject({
-    model: getModel(),
-    schema: fullAnalysisSchema,
-    system: SCORING_SYSTEM_PROMPT,
-    prompt: buildAnalysisPrompt(scan.extractedText, scan.jobDescription ?? ''),
-    onFinish: async ({ object, usage: aiUsage }) => {
-      // Track token usage
-      if (aiUsage) {
-        trackUsage({
-          userId,
-          requestType: 'analyze',
-          inputTokens: aiUsage.inputTokens ?? 0,
-          outputTokens: aiUsage.outputTokens ?? 0,
-          model: modelId,
-        }).catch(() => {});
-      }
+  try {
+    const result = streamObject({
+      model: getModel(),
+      schema: fullAnalysisSchema,
+      system: SCORING_SYSTEM_PROMPT,
+      prompt: buildAnalysisPrompt(scan.extractedText, scan.jobDescription ?? ''),
+      onFinish: async ({ object, usage: aiUsage }) => {
+        // Track token usage
+        if (aiUsage) {
+          trackUsage({
+            userId,
+            requestType: 'analyze',
+            inputTokens: aiUsage.inputTokens ?? 0,
+            outputTokens: aiUsage.outputTokens ?? 0,
+            model: modelId,
+          }).catch(() => {});
+        }
 
-      if (!object) {
+        if (!object) {
+          await db
+            .update(resumeScan)
+            .set({ status: 'failed' })
+            .where(eq(resumeScan.id, scanId));
+          return;
+        }
+
+        const parseabilityScore = scan.parseabilityScore?.score ?? 0;
+
+        const overallScore = Math.round(
+          parseabilityScore * CATEGORY_WEIGHTS.parseability +
+          object.sectionCompleteness.score * CATEGORY_WEIGHTS.sectionCompleteness +
+          object.hardSkillsMatch.score * CATEGORY_WEIGHTS.hardSkillsMatch +
+          object.contentQuality.score * CATEGORY_WEIGHTS.contentQuality +
+          object.jobTitleAlignment.score * CATEGORY_WEIGHTS.jobTitleAlignment +
+          object.experienceDepth.score * CATEGORY_WEIGHTS.experienceDepth +
+          object.softSkills.score * CATEGORY_WEIGHTS.softSkills +
+          object.educationMatch.score * CATEGORY_WEIGHTS.educationMatch,
+        );
+
+        const addWeight = <T extends Record<string, unknown>>(data: T, key: keyof typeof CATEGORY_WEIGHTS) => ({
+          ...data,
+          weight: CATEGORY_WEIGHTS[key],
+        });
+
         await db
           .update(resumeScan)
-          .set({ status: 'failed' })
+          .set({
+            status: 'complete',
+            overallScore,
+            sectionCompletenessScore: addWeight(object.sectionCompleteness, 'sectionCompleteness'),
+            hardSkillsScore: addWeight(object.hardSkillsMatch, 'hardSkillsMatch'),
+            contentQualityScore: addWeight(object.contentQuality, 'contentQuality'),
+            jobTitleAlignmentScore: addWeight(object.jobTitleAlignment, 'jobTitleAlignment'),
+            experienceDepthScore: addWeight(object.experienceDepth, 'experienceDepth'),
+            softSkillsScore: addWeight(object.softSkills, 'softSkills'),
+            educationMatchScore: addWeight(object.educationMatch, 'educationMatch'),
+            summary: object.summary,
+            topRecommendations: object.topRecommendations,
+          })
           .where(eq(resumeScan.id, scanId));
-        return;
-      }
+      },
+    });
 
-      const parseabilityScore = scan.parseabilityScore?.score ?? 0;
-
-      const overallScore = Math.round(
-        parseabilityScore * CATEGORY_WEIGHTS.parseability +
-        object.sectionCompleteness.score * CATEGORY_WEIGHTS.sectionCompleteness +
-        object.hardSkillsMatch.score * CATEGORY_WEIGHTS.hardSkillsMatch +
-        object.contentQuality.score * CATEGORY_WEIGHTS.contentQuality +
-        object.jobTitleAlignment.score * CATEGORY_WEIGHTS.jobTitleAlignment +
-        object.experienceDepth.score * CATEGORY_WEIGHTS.experienceDepth +
-        object.softSkills.score * CATEGORY_WEIGHTS.softSkills +
-        object.educationMatch.score * CATEGORY_WEIGHTS.educationMatch,
-      );
-
-      const addWeight = <T extends Record<string, unknown>>(data: T, key: keyof typeof CATEGORY_WEIGHTS) => ({
-        ...data,
-        weight: CATEGORY_WEIGHTS[key],
-      });
-
-      await db
-        .update(resumeScan)
-        .set({
-          status: 'complete',
-          overallScore,
-          sectionCompletenessScore: addWeight(object.sectionCompleteness, 'sectionCompleteness'),
-          hardSkillsScore: addWeight(object.hardSkillsMatch, 'hardSkillsMatch'),
-          contentQualityScore: addWeight(object.contentQuality, 'contentQuality'),
-          jobTitleAlignmentScore: addWeight(object.jobTitleAlignment, 'jobTitleAlignment'),
-          experienceDepthScore: addWeight(object.experienceDepth, 'experienceDepth'),
-          softSkillsScore: addWeight(object.softSkills, 'softSkills'),
-          educationMatchScore: addWeight(object.educationMatch, 'educationMatch'),
-          summary: object.summary,
-          topRecommendations: object.topRecommendations,
-        })
-        .where(eq(resumeScan.id, scanId));
-    },
-  });
-
-  return result.toTextStreamResponse();
+    return result.toTextStreamResponse();
+  } catch (err) {
+    log.error('Analysis stream failed', err, { scanId, userId });
+    await db
+      .update(resumeScan)
+      .set({ status: 'failed' })
+      .where(eq(resumeScan.id, scanId))
+      .catch(() => {});
+    return Response.json({ error: 'Analysis failed.' }, { status: 500 });
+  }
 }

@@ -7,6 +7,7 @@ import { db } from '@/config/db';
 import { sendOTPEmail } from '@/lib/email';
 import { redisSecondaryStorage } from '@/config/redis';
 import { logAuthEvent } from '@/lib/auth-events';
+import { log } from '@/lib/logger';
 import { isLockedOut, recordFailedAttempt, clearFailedAttempts } from '@/lib/auth-lockout';
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -37,7 +38,7 @@ export const auth = betterAuth({
         try {
           await sendOTPEmail(email, otp, type);
         } catch (err) {
-          console.error('[email] Failed to send OTP:', (err as Error).message);
+          log.error('Failed to send OTP', err, { email, type });
         }
       },
     }),
