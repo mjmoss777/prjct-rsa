@@ -7,6 +7,7 @@ import { siteSettings } from '@/config/db/schema/config-schema';
 import { user } from '@/config/db/schema/auth-schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { encrypt, safeDecrypt } from '@/lib/crypto';
 
 async function requireAdmin() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -25,7 +26,13 @@ async function requireAdmin() {
 export async function getSettings() {
   await requireAdmin();
   const [settings] = await db.select().from(siteSettings).limit(1);
-  return settings ?? null;
+  if (!settings) return null;
+
+  return {
+    ...settings,
+    resendApiKey: safeDecrypt(settings.resendApiKey),
+    posthogApiKey: safeDecrypt(settings.posthogApiKey),
+  };
 }
 
 export async function updateSettings(data: {
@@ -56,9 +63,9 @@ export async function updateSettings(data: {
     googleSearchConsoleId: coalesce(data.googleSearchConsoleId),
     yandexAnalyticsId: coalesce(data.yandexAnalyticsId),
     bingAnalyticsId: coalesce(data.bingAnalyticsId),
-    posthogApiKey: coalesce(data.posthogApiKey),
+    posthogApiKey: coalesce(data.posthogApiKey) ? encrypt(data.posthogApiKey.trim()) : null,
     posthogBaseUrl: coalesce(data.posthogBaseUrl),
-    resendApiKey: coalesce(data.resendApiKey),
+    resendApiKey: coalesce(data.resendApiKey) ? encrypt(data.resendApiKey.trim()) : null,
     emailFromAddress: coalesce(data.emailFromAddress),
     emailFromName: coalesce(data.emailFromName),
     updatedAt: new Date(),

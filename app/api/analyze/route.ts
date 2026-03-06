@@ -11,6 +11,7 @@ import { SCORING_SYSTEM_PROMPT, buildAnalysisPrompt } from '@/lib/scoring/prompt
 import { CATEGORY_WEIGHTS } from '@/lib/scoring/constants';
 import { checkRequestLimit, trackUsage } from '@/lib/usage';
 import type { PlanType } from '@/lib/plans';
+import { detectInjection } from '@/lib/sanitize';
 
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -45,6 +46,10 @@ export async function POST(req: Request) {
 
   if (!scan) {
     return Response.json({ error: 'Scan not found' }, { status: 404 });
+  }
+
+  if (detectInjection(scan.extractedText) || detectInjection(scan.jobDescription ?? '')) {
+    return Response.json({ error: 'Input contains disallowed content.' }, { status: 400 });
   }
 
   if (scan.status === 'complete') {

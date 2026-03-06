@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn, emailOtp, signInOtp } from '@/config/auth/client';
 import { OTPInput } from '@/components/ui/OTPInput';
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { cn } from '@/lib/utils';
 
 type Tab = 'password' | 'otp';
@@ -20,6 +21,9 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  // Turnstile
+  const [turnstileToken, setTurnstileToken] = useState('');
+
   // OTP state
   const [otpEmail, setOtpEmail] = useState('');
   const [otpStep, setOtpStep] = useState<OtpStep>('email');
@@ -32,7 +36,11 @@ export default function SignInPage() {
     setPending(true);
     setError(null);
 
-    const { error: authError } = await signIn({ email, password });
+    const { error: authError } = await signIn({
+      email,
+      password,
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
+    });
 
     if (authError) {
       setError(authError.message ?? 'Invalid email or password.');
@@ -51,6 +59,7 @@ export default function SignInPage() {
     const { error: authError } = await emailOtp.sendVerificationOtp({
       email: otpEmail,
       type: 'sign-in',
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
     });
 
     if (authError) {
@@ -72,6 +81,7 @@ export default function SignInPage() {
     const { error: authError } = await signInOtp({
       email: otpEmail,
       otp,
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
     });
 
     if (authError) {
@@ -90,6 +100,7 @@ export default function SignInPage() {
     const { error: authError } = await emailOtp.sendVerificationOtp({
       email: otpEmail,
       type: 'sign-in',
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
     });
 
     if (authError) {
@@ -273,6 +284,8 @@ export default function SignInPage() {
           </div>
         </>
       )}
+
+      <TurnstileWidget onToken={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
 
       <p className="mt-6 text-center font-body text-[15px] leading-[24px] text-muted">
         Don&apos;t have an account?{' '}

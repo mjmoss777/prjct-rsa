@@ -12,6 +12,8 @@ import { z } from 'zod';
 import { checkRequestLimit, trackUsage } from '@/lib/usage';
 import { PLAN_LIMITS } from '@/lib/plans';
 import type { PlanType } from '@/lib/plans';
+import { sanitizeBullet, sanitizeText, detectInjection } from '@/lib/sanitize';
+import { AI_GUARDRAILS } from '@/lib/scoring/prompts';
 
 export async function saveResume(data: {
   id?: number;
@@ -99,6 +101,16 @@ export async function improveBulletPoint(
     throw new Error('Monthly bullet improvement limit reached. Upgrade to Pro for unlimited usage.');
   }
 
+  // Sanitize inputs
+  const cleanBullet = sanitizeBullet(bullet);
+  const cleanJobTitle = sanitizeText(jobTitle, 200);
+  const cleanCompany = sanitizeText(company, 200);
+
+  // Check for prompt injection
+  if (detectInjection(cleanBullet) || detectInjection(cleanJobTitle) || detectInjection(cleanCompany)) {
+    throw new Error('Input contains disallowed content.');
+  }
+
   const modelId = process.env.AI_MODEL || process.env.OPENROUTER_MODEL || 'openai/gpt-4o';
 
   const { object, usage: aiUsage } = await generateObject({
@@ -106,8 +118,10 @@ export async function improveBulletPoint(
     schema: z.object({
       improved: z.string().describe('The improved bullet point'),
     }),
-    system: `You are a resume writing expert. Improve the given bullet point to be more impactful for ATS systems and hiring managers. Use strong action verbs, quantify results where possible, and be concise. Keep it to one sentence. Do not add information that wasn't implied in the original.`,
-    prompt: `Job title: ${jobTitle}\nCompany: ${company}\n\nOriginal bullet point: ${bullet}`,
+    system: `${AI_GUARDRAILS}
+
+You are a resume writing expert. Improve the given bullet point to be more impactful for ATS systems and hiring managers. Use strong action verbs, quantify results where possible, and be concise. Keep it to one sentence. Do not add information that wasn't implied in the original.`,
+    prompt: `Job title: ${cleanJobTitle}\nCompany: ${cleanCompany}\n\nOriginal bullet point: ${cleanBullet}`,
   });
 
   // Track token usage

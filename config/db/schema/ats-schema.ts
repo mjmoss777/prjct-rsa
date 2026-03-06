@@ -32,7 +32,13 @@ export type ResumeData = {
   additionalSections?: { title: string; content: string }[];
 };
 
-export type TemplateType = 'reverse-chronological' | 'hybrid' | 'minimalist' | 'professional' | 'modern';
+export type TemplateType =
+  // General
+  | 'reverse-chronological' | 'hybrid' | 'minimalist' | 'professional' | 'modern'
+  // ATS-Optimized
+  | 'executive' | 'technical' | 'creative-ats' | 'federal' | 'academic' | 'compact'
+  // Industry-Focused
+  | 'tech-industry' | 'finance' | 'healthcare' | 'legal' | 'marketing';
 
 type BaseScore = {
   score: number;

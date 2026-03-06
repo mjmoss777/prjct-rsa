@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { emailOtp } from '@/config/auth/client';
 import { OTPInput } from '@/components/ui/OTPInput';
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { cn } from '@/lib/utils';
 
 type Step = 'email' | 'reset' | 'success';
@@ -17,6 +18,7 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function ForgotPasswordPage() {
     const { error: authError } = await emailOtp.sendVerificationOtp({
       email,
       type: 'forget-password',
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
     });
 
     if (authError) {
@@ -52,6 +55,7 @@ export default function ForgotPasswordPage() {
       email,
       otp,
       password: newPassword,
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
     });
 
     if (authError) {
@@ -175,6 +179,8 @@ export default function ForgotPasswordPage() {
           </button>
         </form>
       )}
+
+      <TurnstileWidget onToken={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
 
       <p className="mt-6 text-center font-body text-[15px] leading-[24px] text-muted">
         {step === 'reset' ? (

@@ -1,9 +1,12 @@
 import type { TemplateType } from '@/config/db/schema/ats-schema';
 
+export type TemplateCategory = 'general' | 'ats-optimized' | 'industry-focused';
+
 export type TemplateStyle = {
   id: TemplateType;
   name: string;
   description: string;
+  category: TemplateCategory;
   fonts: {
     heading: string;
     body: string;

@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { db } from '@/config/db';
 import { siteSettings } from '@/config/db/schema/config-schema';
+import { safeDecrypt } from '@/lib/crypto';
 
 type OTPType = 'sign-in' | 'email-verification' | 'forget-password';
 
@@ -23,12 +24,13 @@ async function getEmailConfig() {
     .from(siteSettings)
     .limit(1);
 
-  if (!settings?.resendApiKey) {
+  const apiKey = safeDecrypt(settings?.resendApiKey);
+  if (!apiKey) {
     throw new Error('Email service not configured. Add a Resend API key in admin settings.');
   }
 
   return {
-    apiKey: settings.resendApiKey,
+    apiKey,
     from: settings.emailFromAddress
       ? `${settings.emailFromName ?? settings.siteName} <${settings.emailFromAddress}>`
       : `${settings.siteName} <onboarding@resend.dev>`,

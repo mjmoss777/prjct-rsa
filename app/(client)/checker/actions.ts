@@ -8,6 +8,8 @@ import { resumeScan } from '@/config/db/schema/ats-schema';
 import { parseResume } from '@/lib/parsers';
 import { scoreParseability } from '@/lib/scoring/parseability-scorer';
 import { getStorage } from '@/lib/storage';
+import { verifyMagicBytes } from '@/lib/file-integrity';
+import { sanitizeText } from '@/lib/sanitize';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -25,6 +27,12 @@ export async function analyzeResume(formData: FormData) {
   if (!ALLOWED_TYPES.includes(file.type)) throw new Error('Only PDF and DOCX files are supported.');
 
   const buffer = Buffer.from(await file.arrayBuffer());
+
+  const integrity = verifyMagicBytes(buffer, file.type);
+  if (!integrity.valid) {
+    throw new Error('File content does not match its declared type.');
+  }
+
   const parsed = await parseResume(buffer, file.name);
   const parseability = scoreParseability(parsed);
 
@@ -43,7 +51,7 @@ export async function analyzeResume(formData: FormData) {
       fileSize: file.size,
       extractedText: parsed.text,
       fileUrl: storageKey,
-      jobDescription,
+      jobDescription: sanitizeText(jobDescription, 20000),
       status: 'pending',
       parseabilityScore: parseability,
     })

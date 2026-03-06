@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { emailOTP } from 'better-auth/plugins/email-otp';
+import { captcha } from 'better-auth/plugins';
 import { createAuthMiddleware } from 'better-auth/api';
 import { db } from '@/config/db';
 import { sendOTPEmail } from '@/lib/email';
@@ -40,6 +41,14 @@ export const auth = betterAuth({
         }
       },
     }),
+    ...(process.env.TURNSTILE_SECRET_KEY
+      ? [
+          captcha({
+            provider: 'cloudflare-turnstile',
+            secretKey: process.env.TURNSTILE_SECRET_KEY,
+          }),
+        ]
+      : []),
   ],
   session: {
     expiresIn: 60 * 60 * 24 * 7,

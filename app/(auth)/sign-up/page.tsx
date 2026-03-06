@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signUp } from '@/config/auth/client';
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { cn } from '@/lib/utils';
 
 export default function SignUpPage() {
@@ -13,6 +14,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +31,7 @@ export default function SignUpPage() {
       name,
       email,
       password,
+      fetchOptions: { headers: { 'x-captcha-response': turnstileToken } },
     });
 
     if (authError) {
@@ -115,6 +118,8 @@ export default function SignUpPage() {
           {pending ? 'Creating account...' : 'Create account'}
         </button>
       </form>
+
+      <TurnstileWidget onToken={setTurnstileToken} onExpire={() => setTurnstileToken('')} />
 
       <p className="mt-6 text-center font-body text-[15px] leading-[24px] text-muted">
         Already have an account?{' '}
