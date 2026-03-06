@@ -5,3 +5,4 @@ export * from './ats-schema';
 export * from './config-schema';
 export * from './usage-schema';
 export * from './subscription-schema';
+export * from './blog-schema';

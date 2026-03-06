@@ -108,6 +108,20 @@ export default function Homepage() {
                             {item}
                         </a>
                     ))}
+                    <Link
+                        href="/blog"
+                        className="transition-colors duration-200"
+                        style={{
+                            ...typeScale.label,
+                            color: colors.muted,
+                            touchAction: "manipulation",
+                            textDecoration: "none",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = colors.foreground)}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = colors.muted)}
+                    >
+                        Blog
+                    </Link>
                     {isLoggedIn ? (
                         <Link
                             href="/dashboard"
@@ -402,6 +416,20 @@ export default function Homepage() {
                             {item}
                         </a>
                     ))}
+                    <Link
+                        href="/blog"
+                        className="transition-colors duration-200"
+                        style={{
+                            ...typeScale.caption,
+                            color: colors.subtle,
+                            touchAction: "manipulation",
+                            textDecoration: "none",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = colors.muted)}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = colors.subtle)}
+                    >
+                        Blog
+                    </Link>
                 </div>
             </motion.footer>
         </div>

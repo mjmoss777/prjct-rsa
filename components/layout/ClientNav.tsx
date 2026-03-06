@@ -15,6 +15,7 @@ const navItems = [
 
 const adminItems = [
   { label: 'Pages', href: '/admin/pages' },
+  { label: 'Blog', href: '/admin/blog' },
   { label: 'Settings', href: '/admin/settings' },
   { label: 'Usage', href: '/admin/usage' },
   { label: 'Subscribers', href: '/admin/subscribers' },
