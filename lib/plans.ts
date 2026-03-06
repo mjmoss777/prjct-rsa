@@ -1,18 +1,40 @@
 export type PlanType = 'free' | 'pro';
 
 export const PLAN_LIMITS: Record<PlanType, {
-  monthlyTokens: number;
+  monthlyAnalyses: number;
+  monthlyBulletImprovements: number;
+  maxSavedResumes: number;
   label: string;
+  price: number;
   features: string[];
 }> = {
   free: {
-    monthlyTokens: 50_000,
+    monthlyAnalyses: 15,
+    monthlyBulletImprovements: 10,
+    maxSavedResumes: 3,
     label: 'Free',
-    features: ['5 resume scans/month', 'Basic templates', 'AI bullet improvement'],
+    price: 0,
+    features: [
+      '15 resume analyses/month',
+      '10 AI bullet improvements/month',
+      '3 saved resumes',
+      '2 basic templates',
+      'PDF export',
+    ],
   },
   pro: {
-    monthlyTokens: 500_000,
+    monthlyAnalyses: 200,
+    monthlyBulletImprovements: -1, // unlimited
+    maxSavedResumes: -1, // unlimited
     label: 'Pro',
-    features: ['Unlimited scans', 'All templates', 'Priority AI models', 'DOCX/PDF export'],
+    price: 8,
+    features: [
+      '200 resume analyses/month',
+      'Unlimited AI bullet improvements',
+      'Unlimited saved resumes',
+      'All templates',
+      'PDF + DOCX export',
+      'Priority support',
+    ],
   },
 };

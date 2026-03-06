@@ -19,10 +19,15 @@ export async function getUserUsage() {
     .limit(1);
 
   const plan = (dbUser?.plan as PlanType) || 'free';
-  const { totalTokens } = await getMonthlyUsage(session.user.id);
-  const limit = PLAN_LIMITS[plan].monthlyTokens;
-  const remaining = Math.max(0, limit - totalTokens);
-  const percentage = Math.min(100, Math.round((totalTokens / limit) * 100));
+  const limits = PLAN_LIMITS[plan];
+  const { analyzeCount, improveBulletCount } = await getMonthlyUsage(session.user.id);
 
-  return { plan, used: totalTokens, limit, remaining, percentage };
+  const analyzePercentage = Math.min(100, Math.round((analyzeCount / limits.monthlyAnalyses) * 100));
+
+  return {
+    plan,
+    analyses: { used: analyzeCount, limit: limits.monthlyAnalyses },
+    bulletImprovements: { used: improveBulletCount, limit: limits.monthlyBulletImprovements },
+    analyzePercentage,
+  };
 }

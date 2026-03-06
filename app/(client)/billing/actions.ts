@@ -21,6 +21,7 @@ export async function getBillingInfo() {
     .limit(1);
 
   const plan = (dbUser?.plan as PlanType) || 'free';
+  const limits = PLAN_LIMITS[plan];
 
   const [sub] = await db
     .select()
@@ -28,13 +29,13 @@ export async function getBillingInfo() {
     .where(eq(subscription.userId, session.user.id))
     .limit(1);
 
-  const { totalTokens, requestCount } = await getMonthlyUsage(session.user.id);
-  const limit = PLAN_LIMITS[plan].monthlyTokens;
+  const { analyzeCount, improveBulletCount } = await getMonthlyUsage(session.user.id);
 
   return {
     plan,
-    planLabel: PLAN_LIMITS[plan].label,
-    features: PLAN_LIMITS[plan].features,
+    planLabel: limits.label,
+    price: limits.price,
+    features: limits.features,
     subscription: sub
       ? {
           status: sub.status,
@@ -43,10 +44,9 @@ export async function getBillingInfo() {
         }
       : null,
     usage: {
-      totalTokens,
-      requestCount,
-      limit,
-      percentage: Math.min(100, Math.round((totalTokens / limit) * 100)),
+      analyses: { used: analyzeCount, limit: limits.monthlyAnalyses },
+      bulletImprovements: { used: improveBulletCount, limit: limits.monthlyBulletImprovements },
+      analyzePercentage: Math.min(100, Math.round((analyzeCount / limits.monthlyAnalyses) * 100)),
     },
   };
 }

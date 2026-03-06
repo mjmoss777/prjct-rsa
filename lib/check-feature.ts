@@ -5,9 +5,9 @@ const PLAN_RANK: Record<PlanType, number> = { free: 0, pro: 1 };
 export const FEATURE_GATES: Record<string, PlanType> = {
   analyze: 'free',
   improve_bullet: 'free',
-  export_pdf: 'pro',
+  export_pdf: 'free',
   export_docx: 'pro',
-  premium_templates: 'pro',
+  all_templates: 'pro',
 };
 
 export function canAccessFeature(userPlan: PlanType, feature: string): boolean {

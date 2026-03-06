@@ -6,10 +6,9 @@ import { getUserUsage } from '@/app/(client)/usage/actions';
 
 type UsageData = {
   plan: string;
-  used: number;
-  limit: number;
-  remaining: number;
-  percentage: number;
+  analyses: { used: number; limit: number };
+  bulletImprovements: { used: number; limit: number };
+  analyzePercentage: number;
 };
 
 export function UsageWidget() {
@@ -41,18 +40,21 @@ export function UsageWidget() {
           </span>
         </div>
 
-        {/* Progress bar */}
+        {/* Analyses progress bar */}
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
           <div
             className={`h-full rounded-full transition-all ${
-              data.percentage > 90 ? 'bg-red-500' : 'bg-accent'
+              data.analyzePercentage > 90 ? 'bg-red-500' : 'bg-accent'
             }`}
-            style={{ width: `${data.percentage}%` }}
+            style={{ width: `${data.analyzePercentage}%` }}
           />
         </div>
 
         <p className="mt-1.5 font-body text-[12px] text-muted">
-          {data.remaining.toLocaleString()} tokens remaining
+          {data.analyses.used}/{data.analyses.limit} analyses
+          {data.bulletImprovements.limit === -1
+            ? ` · ${data.bulletImprovements.used} improvements`
+            : ` · ${data.bulletImprovements.used}/${data.bulletImprovements.limit} improvements`}
         </p>
 
         {!isPro && (

@@ -6,6 +6,7 @@ import { createCheckoutSession, getPortalUrl } from './actions';
 type BillingInfo = {
   plan: string;
   planLabel: string;
+  price: number;
   features: string[];
   subscription: {
     status: string;
@@ -13,10 +14,9 @@ type BillingInfo = {
     cancelAtPeriodEnd: boolean;
   } | null;
   usage: {
-    totalTokens: number;
-    requestCount: number;
-    limit: number;
-    percentage: number;
+    analyses: { used: number; limit: number };
+    bulletImprovements: { used: number; limit: number };
+    analyzePercentage: number;
   };
 };
 
@@ -52,6 +52,11 @@ export function BillingClient({ billing }: { billing: BillingInfo }) {
           <div>
             <h2 className="font-display text-[18px] leading-[24px] text-fg">
               {billing.planLabel} Plan
+              {billing.price > 0 && (
+                <span className="ml-2 font-body text-[15px] font-normal text-muted">
+                  ${billing.price}/mo
+                </span>
+              )}
             </h2>
             {billing.subscription && (
               <p className="mt-1 font-body text-[14px] text-muted">
@@ -86,21 +91,33 @@ export function BillingClient({ billing }: { billing: BillingInfo }) {
       {/* Usage summary */}
       <div className="rounded-[8px] border border-border bg-surface p-6">
         <h2 className="font-display text-[18px] leading-[24px] text-fg">
-          Usage This Period
+          Usage This Month
         </h2>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-border">
-          <div
-            className={`h-full rounded-full ${billing.usage.percentage > 90 ? 'bg-red-500' : 'bg-accent'}`}
-            style={{ width: `${billing.usage.percentage}%` }}
-          />
+
+        {/* Analyses */}
+        <div className="mt-4">
+          <div className="flex justify-between font-body text-[14px] text-muted">
+            <span>Resume analyses</span>
+            <span>{billing.usage.analyses.used} / {billing.usage.analyses.limit}</span>
+          </div>
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-border">
+            <div
+              className={`h-full rounded-full ${billing.usage.analyzePercentage > 90 ? 'bg-red-500' : 'bg-accent'}`}
+              style={{ width: `${billing.usage.analyzePercentage}%` }}
+            />
+          </div>
         </div>
-        <div className="mt-2 flex justify-between font-body text-[14px] text-muted">
-          <span>{billing.usage.totalTokens.toLocaleString()} tokens used</span>
-          <span>{billing.usage.limit.toLocaleString()} limit</span>
+
+        {/* Bullet improvements */}
+        <div className="mt-3">
+          <div className="flex justify-between font-body text-[14px] text-muted">
+            <span>Bullet improvements</span>
+            <span>
+              {billing.usage.bulletImprovements.used}
+              {billing.usage.bulletImprovements.limit === -1 ? '' : ` / ${billing.usage.bulletImprovements.limit}`}
+            </span>
+          </div>
         </div>
-        <p className="mt-1 font-body text-[13px] text-subtle">
-          {billing.usage.requestCount} AI requests this month
-        </p>
       </div>
 
       {/* Actions */}
@@ -121,7 +138,7 @@ export function BillingClient({ billing }: { billing: BillingInfo }) {
             disabled={loading}
             className="rounded-[8px] bg-accent px-5 py-2.5 font-body text-[15px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
           >
-            {loading ? 'Loading...' : 'Upgrade to Pro'}
+            {loading ? 'Loading...' : 'Upgrade to Pro — $8/mo'}
           </button>
         )}
       </div>

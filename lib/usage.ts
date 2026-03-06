@@ -23,6 +23,8 @@ export async function trackUsage(params: {
 export async function getMonthlyUsage(userId: string): Promise<{
   totalTokens: number;
   requestCount: number;
+  analyzeCount: number;
+  improveBulletCount: number;
 }> {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -32,6 +34,8 @@ export async function getMonthlyUsage(userId: string): Promise<{
     .select({
       totalTokens: sql<number>`coalesce(sum(${aiUsage.totalTokens}), 0)::int`,
       requestCount: sql<number>`count(*)::int`,
+      analyzeCount: sql<number>`count(*) filter (where ${aiUsage.requestType} = 'analyze')::int`,
+      improveBulletCount: sql<number>`count(*) filter (where ${aiUsage.requestType} = 'improve_bullet')::int`,
     })
     .from(aiUsage)
     .where(
@@ -44,23 +48,35 @@ export async function getMonthlyUsage(userId: string): Promise<{
   return {
     totalTokens: result?.totalTokens ?? 0,
     requestCount: result?.requestCount ?? 0,
+    analyzeCount: result?.analyzeCount ?? 0,
+    improveBulletCount: result?.improveBulletCount ?? 0,
   };
 }
 
-export async function checkUsageLimit(userId: string, plan: PlanType): Promise<{
+export async function checkRequestLimit(
+  userId: string,
+  plan: PlanType,
+  requestType: RequestType,
+): Promise<{
   allowed: boolean;
   used: number;
   limit: number;
   remaining: number;
 }> {
-  const { totalTokens } = await getMonthlyUsage(userId);
-  const limit = PLAN_LIMITS[plan].monthlyTokens;
-  const remaining = Math.max(0, limit - totalTokens);
+  const { analyzeCount, improveBulletCount } = await getMonthlyUsage(userId);
+  const limits = PLAN_LIMITS[plan];
 
-  return {
-    allowed: totalTokens < limit,
-    used: totalTokens,
-    limit,
-    remaining,
-  };
+  if (requestType === 'analyze') {
+    const limit = limits.monthlyAnalyses;
+    const remaining = Math.max(0, limit - analyzeCount);
+    return { allowed: analyzeCount < limit, used: analyzeCount, limit, remaining };
+  }
+
+  // improve_bullet
+  const limit = limits.monthlyBulletImprovements;
+  if (limit === -1) {
+    return { allowed: true, used: improveBulletCount, limit: -1, remaining: -1 };
+  }
+  const remaining = Math.max(0, limit - improveBulletCount);
+  return { allowed: improveBulletCount < limit, used: improveBulletCount, limit, remaining };
 }

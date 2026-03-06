@@ -1,7 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '@/config/db';
 import { savedResume, type ResumeData, type TemplateType } from '@/config/db/schema/ats-schema';
 import { user } from '@/config/db/schema/auth-schema';
@@ -9,7 +9,8 @@ import { auth } from '@/config/auth';
 import { generateObject } from 'ai';
 import { getModel } from '@/config/ai';
 import { z } from 'zod';
-import { checkUsageLimit, trackUsage } from '@/lib/usage';
+import { checkRequestLimit, trackUsage } from '@/lib/usage';
+import { PLAN_LIMITS } from '@/lib/plans';
 import type { PlanType } from '@/lib/plans';
 
 export async function saveResume(data: {
@@ -20,6 +21,28 @@ export async function saveResume(data: {
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) throw new Error('Unauthorized');
+
+  // Check saved resume limit for new resumes
+  if (!data.id) {
+    const [dbUser] = await db
+      .select({ plan: user.plan })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1);
+    const userPlan = (dbUser?.plan as PlanType) || 'free';
+    const maxResumes = PLAN_LIMITS[userPlan].maxSavedResumes;
+
+    if (maxResumes !== -1) {
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(savedResume)
+        .where(eq(savedResume.userId, session.user.id));
+
+      if (count >= maxResumes) {
+        throw new Error(`Resume limit reached (${maxResumes}). Upgrade to Pro for unlimited resumes.`);
+      }
+    }
+  }
 
   if (data.id) {
     await db
@@ -71,9 +94,9 @@ export async function improveBulletPoint(
   const userPlan = (dbUser?.plan as PlanType) || 'free';
 
   // Check usage limit
-  const usage = await checkUsageLimit(userId, userPlan);
+  const usage = await checkRequestLimit(userId, userPlan, 'improve_bullet');
   if (!usage.allowed) {
-    throw new Error('Monthly token limit exceeded. Upgrade your plan for more usage.');
+    throw new Error('Monthly bullet improvement limit reached. Upgrade to Pro for unlimited usage.');
   }
 
   const modelId = process.env.AI_MODEL || process.env.OPENROUTER_MODEL || 'openai/gpt-4o';

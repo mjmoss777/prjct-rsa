@@ -9,7 +9,7 @@ import { resumeScan } from '@/config/db/schema/ats-schema';
 import { fullAnalysisSchema } from '@/lib/scoring/schemas';
 import { SCORING_SYSTEM_PROMPT, buildAnalysisPrompt } from '@/lib/scoring/prompts';
 import { CATEGORY_WEIGHTS } from '@/lib/scoring/constants';
-import { checkUsageLimit, trackUsage } from '@/lib/usage';
+import { checkRequestLimit, trackUsage } from '@/lib/usage';
 import type { PlanType } from '@/lib/plans';
 
 export async function POST(req: Request) {
@@ -29,10 +29,10 @@ export async function POST(req: Request) {
   const userPlan = (dbUser?.plan as PlanType) || 'free';
 
   // Check usage limit
-  const usage = await checkUsageLimit(userId, userPlan);
+  const usage = await checkRequestLimit(userId, userPlan, 'analyze');
   if (!usage.allowed) {
     return Response.json(
-      { error: 'Monthly token limit exceeded', used: usage.used, limit: usage.limit },
+      { error: 'Monthly analysis limit reached', used: usage.used, limit: usage.limit },
       { status: 429 },
     );
   }
