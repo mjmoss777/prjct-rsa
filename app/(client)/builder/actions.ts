@@ -1,7 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@/config/db';
 import { savedResume, type ResumeData, type TemplateType } from '@/config/db/schema/ats-schema';
 import { user } from '@/config/db/schema/auth-schema';
@@ -47,6 +47,14 @@ export async function saveResume(data: {
   }
 
   if (data.id) {
+    const [existing] = await db
+      .select({ id: savedResume.id })
+      .from(savedResume)
+      .where(and(eq(savedResume.id, data.id), eq(savedResume.userId, session.user.id)))
+      .limit(1);
+
+    if (!existing) throw new Error('Resume not found');
+
     await db
       .update(savedResume)
       .set({
@@ -55,7 +63,7 @@ export async function saveResume(data: {
         resumeData: data.resumeData,
         updatedAt: new Date(),
       })
-      .where(eq(savedResume.id, data.id));
+      .where(and(eq(savedResume.id, data.id), eq(savedResume.userId, session.user.id)));
 
     return { id: data.id };
   }
@@ -74,7 +82,12 @@ export async function saveResume(data: {
 }
 
 export async function deleteResume(id: number) {
-  await db.delete(savedResume).where(eq(savedResume.id, id));
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error('Unauthorized');
+
+  await db
+    .delete(savedResume)
+    .where(and(eq(savedResume.id, id), eq(savedResume.userId, session.user.id)));
 }
 
 export async function improveBulletPoint(

@@ -1,6 +1,6 @@
 import { streamObject } from 'ai';
 import { headers } from 'next/headers';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { auth } from '@/config/auth';
 import { getModel } from '@/config/ai';
 import { db } from '@/config/db';
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const { scanId } = (await req.json()) as { scanId: number };
 
   const scan = await db.query.resumeScan.findFirst({
-    where: eq(resumeScan.id, scanId),
+    where: and(eq(resumeScan.id, scanId), eq(resumeScan.userId, userId)),
   });
 
   if (!scan) {

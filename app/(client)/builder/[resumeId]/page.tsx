@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
-import { eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { eq, and } from 'drizzle-orm';
+import { auth } from '@/config/auth';
 import { db } from '@/config/db';
 import { savedResume } from '@/config/db/schema/ats-schema';
 import { ResumeForm } from '@/components/pages/builder/ResumeForm';
@@ -11,6 +13,9 @@ export default async function EditResumePage({
 }: {
   params: Promise<{ resumeId: string }>;
 }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) notFound();
+
   const { resumeId } = await params;
   const id = parseInt(resumeId, 10);
   if (isNaN(id)) notFound();
@@ -18,7 +23,7 @@ export default async function EditResumePage({
   const [resume] = await db
     .select()
     .from(savedResume)
-    .where(eq(savedResume.id, id))
+    .where(and(eq(savedResume.id, id), eq(savedResume.userId, session.user.id)))
     .limit(1);
 
   if (!resume) notFound();

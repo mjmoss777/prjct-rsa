@@ -1,7 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { auth } from '@/config/auth';
 import { db } from '@/config/db';
 import { resumeScan, savedResume } from '@/config/db/schema/ats-schema';
@@ -48,5 +48,5 @@ export async function deleteScan(scanId: number) {
 
   await db
     .delete(resumeScan)
-    .where(eq(resumeScan.id, scanId));
+    .where(and(eq(resumeScan.id, scanId), eq(resumeScan.userId, session.user.id)));
 }

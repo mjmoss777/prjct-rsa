@@ -25,6 +25,11 @@ function id() {
 }
 
 async function seed() {
+  if (process.env.NODE_ENV === "production") {
+    console.error("Seed script must not run in production.");
+    process.exit(1);
+  }
+
   console.log("Seeding database…");
 
   // Clean existing data (order matters for FK constraints)
@@ -43,15 +48,17 @@ async function seed() {
   await db.delete(page);
   console.log("  Cleared existing data");
 
-  // --- Auth: admin user (admin:admin) ---
+  // --- Auth: admin user ---
   const adminId = id();
   const accountId = id();
-  const hashedPassword = await hashPassword("admin");
+  const seedEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@admin.com";
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD ?? crypto.randomBytes(16).toString("hex");
+  const hashedPassword = await hashPassword(seedPassword);
 
   await db.insert(user).values({
     id: adminId,
     name: "Admin",
-    email: "admin@admin.com",
+    email: seedEmail,
     emailVerified: true,
     role: "admin",
     accountStatus: "active",
@@ -65,7 +72,7 @@ async function seed() {
     userId: adminId,
     password: hashedPassword,
   });
-  console.log("  Created admin user (admin@admin.com / admin)");
+  console.log(`  Created admin user (${seedEmail} / ${seedPassword})`);
 
   // --- Site Settings ---
   await db.insert(siteSettings).values({
@@ -263,7 +270,7 @@ Questions about these terms? Email [legal@resume-ats.com](mailto:legal@resume-at
     resumeData: {
       contactInfo: {
         fullName: "Admin User",
-        email: "admin@admin.com",
+        email: seedEmail,
         phone: "+1 555-0100",
         linkedIn: "linkedin.com/in/admin",
         location: "San Francisco, CA",

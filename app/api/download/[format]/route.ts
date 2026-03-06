@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { auth } from '@/config/auth';
 import { db } from '@/config/db';
 import { savedResume } from '@/config/db/schema/ats-schema';
 import { getTemplate } from '@/lib/templates/configs';
@@ -10,6 +12,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ format: string }> },
 ) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { format } = await params;
   const resumeId = request.nextUrl.searchParams.get('id');
 
@@ -20,7 +27,7 @@ export async function GET(
   const [resume] = await db
     .select()
     .from(savedResume)
-    .where(eq(savedResume.id, parseInt(resumeId, 10)))
+    .where(and(eq(savedResume.id, parseInt(resumeId, 10)), eq(savedResume.userId, session.user.id)))
     .limit(1);
 
   if (!resume) {

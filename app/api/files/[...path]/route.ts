@@ -1,5 +1,7 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { headers } from 'next/headers';
+import { auth } from '@/config/auth';
 
 const UPLOAD_DIR = join(process.cwd(), '.uploads');
 
@@ -12,11 +14,21 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { path } = await params;
   const filePath = join(UPLOAD_DIR, ...path);
 
   // Prevent directory traversal
   if (!filePath.startsWith(UPLOAD_DIR)) {
+    return new Response('Forbidden', { status: 403 });
+  }
+
+  // Ownership check: path format is resumes/{userId}/{file}
+  if (path[0] === 'resumes' && path[1] !== session.user.id) {
     return new Response('Forbidden', { status: 403 });
   }
 
