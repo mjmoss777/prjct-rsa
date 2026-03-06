@@ -24,17 +24,18 @@ async function getEmailConfig() {
     .from(siteSettings)
     .limit(1);
 
-  const apiKey = safeDecrypt(settings?.resendApiKey);
+  const apiKey = safeDecrypt(settings?.resendApiKey) || process.env.RESEND_API_KEY;
   if (!apiKey) {
     throw new Error('Email service not configured. Add a Resend API key in admin settings.');
   }
 
+  const fromEmail = settings?.emailFromAddress || process.env.RESEND_EMAIL || 'onboarding@resend.dev';
+  const fromName = settings?.emailFromName ?? settings?.siteName ?? 'App';
+
   return {
     apiKey,
-    from: settings.emailFromAddress
-      ? `${settings.emailFromName ?? settings.siteName} <${settings.emailFromAddress}>`
-      : `${settings.siteName} <onboarding@resend.dev>`,
-    siteName: settings.siteName,
+    from: `${fromName} <${fromEmail}>`,
+    siteName: settings?.siteName ?? 'App',
   };
 }
 
@@ -66,25 +67,26 @@ function buildOTPEmailHTML(otp: string, type: OTPType, siteName: string): string
   const safeOtp = escapeHtml(otp);
   return `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"/></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px">
+<head>
+  <meta charset="utf-8"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#F5F0E8;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:80px 24px">
     <tr><td align="center">
-      <table width="100%" style="max-width:420px;background:#ffffff;border-radius:12px;padding:40px 32px">
+      <table width="100%" style="max-width:420px;background:#ffffff;border-radius:16px;padding:40px 32px;border:1px solid #D4CDBE">
         <tr><td>
-          <h1 style="margin:0 0 8px;font-size:20px;font-weight:600;color:#18181b">${heading}</h1>
-          <p style="margin:0 0 24px;font-size:15px;color:#71717a;line-height:1.5">
+          <p style="margin:0 0 16px;font-size:13px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;color:#A39E93">${safeName}</p>
+          <h1 style="margin:0 0 12px;font-size:22px;font-weight:400;letter-spacing:-0.01em;color:#1A1A18">${heading}</h1>
+          <p style="margin:0 0 32px;font-size:15px;color:#6B6960;line-height:24px">
             Enter this code to continue. It expires in 5 minutes.
           </p>
-          <div style="background:#f4f4f5;border-radius:8px;padding:16px;text-align:center;margin-bottom:24px">
-            <span style="font-size:32px;font-weight:700;letter-spacing:0.3em;color:#18181b">${safeOtp}</span>
+          <div style="background:#F5F0E8;border-radius:16px;padding:20px;text-align:center;margin-bottom:32px;border:1px solid #D4CDBE">
+            <span style="font-size:32px;font-weight:500;letter-spacing:0.3em;color:#1A1A18;font-variant-numeric:tabular-nums">${safeOtp}</span>
           </div>
-          <p style="margin:0;font-size:13px;color:#a1a1aa;line-height:1.5">
-            If you didn't request this code, you can safely ignore this email.
+          <p style="margin:0;font-size:13px;color:#A39E93;line-height:16px">
+            If you didn\u2019t request this code, you can safely ignore this email.
           </p>
-        </td></tr>
-        <tr><td style="padding-top:24px;border-top:1px solid #e4e4e7;margin-top:24px">
-          <p style="margin:0;font-size:13px;color:#a1a1aa">${safeName}</p>
         </td></tr>
       </table>
     </td></tr>
